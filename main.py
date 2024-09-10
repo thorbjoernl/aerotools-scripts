@@ -39,15 +39,15 @@ time_config = {
 }
 
 
-def get_site_data(varname: str, obsnetwork: str, model: str, time_config: dict) -> dict:
+def get_site_data(varname: str, obsnetwork: str, model: str, layer: str, time_config: dict) -> dict:
     """
 
     :param varname : Observation and model variable name (eg. concNno)
     :param obsnetwork : Observation network (eg. EBAS-m)
     :param model : Model name (eg. v5.3)
+    :param layer : Layer (eg. Surface)
     :param time_config : Dict with entries 'year', 'season', 'stats' (see example above)
     """
-    layer = "Surface"  # TODO: Hardcoded for now.
     year = time_config["year"]
     season = time_config["season"]
     stats = time_config["stats"]
@@ -77,7 +77,7 @@ def get_site_data(varname: str, obsnetwork: str, model: str, time_config: dict) 
     return result
 
 
-sites = get_site_data("concNno", "EBAS-m", "v5.3", time_config)
+sites = get_site_data("concNno", "EBAS-m", "v5.3", "Surface", time_config)
 
 # Show full record for the first entry:
 print(sites[0])
