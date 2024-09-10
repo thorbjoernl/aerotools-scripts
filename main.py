@@ -86,6 +86,7 @@ print(sites[0])
 for name in [s["station_name"] for s in sites]:
     print(name)
 
+print(len(sites))
 # OUTPUT:
 # python main.py 
 # Fetching data from 'https://api.aeroval-test.met.no/api/0.2.1/map/rv5_series/DSemep/EBAS-m/concNno/Surface/v5.3/concNno/2022?data_path=davids'
