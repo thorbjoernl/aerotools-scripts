@@ -80,3 +80,6 @@ sites = get_site_data("concNno", "EBAS-m", "v5.3", time_config)
 
 print(sites[0])
 
+#python main.py 
+#Fetching data from 'https://api.aeroval-test.met.no/api/0.2.1/map/rv5_series/DSemep/EBAS-m/concNno/Surface/v5.3/concNno/2022?data_path=davids'
+#{'station_name': 'Aliartos', 'latitude': 38.366667, 'longitude': 23.083333, 'altitude': 110.0, 'region': ['Greece']}
