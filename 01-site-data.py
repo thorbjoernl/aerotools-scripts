@@ -1,3 +1,4 @@
+import pprint
 import requests
 import simplejson
 import sqlite3
@@ -149,16 +150,30 @@ def get_site_data(
 sites = get_site_data("concNno", "EBAS-m", "v5.3", "Surface", time_config)
 
 # Show full record for the first entry:
-print(sites["GR0001R"])
+pprint.pprint(sites["GR0001R"])
 
 # List names for all entries:
 for station_code in sites:
     print(f"{station_code} - {sites[station_code]['station_name']}")
 
-print(len(sites))
-# OUTPUT:
-# python main.py
-# {'station_code': 'GR0001R', 'platform_code': 'GR0001S', 'station_name': 'Aliartos', 'station_wdca_id': None, 'station_gaw_name': None, 'station_gaw_id': None, 'station_airs_id': None, 'station_other_ids': None, 'station_state_code': None, 'station_landuse': None, 'station_setting': None, 'station_gaw_type': None, 'station_wmo_region': None, 'station_latitude': 38.366667, 'station_longitude': 23.083333, 'station_altitude': 110.0}
+print(f"Number of stations: {len(sites)}") # Should match count shown at https://aeroval-test.met.no/davids/pages/evaluation/?project=rv5_series&experiment=DSemep&station=ALL 
+# > python 01-site-data.py 
+# {'platform_code': 'GR0001S',
+#  'station_airs_id': None,
+#  'station_altitude': 110.0,
+#  'station_code': 'GR0001R',
+#  'station_gaw_id': None,
+#  'station_gaw_name': None,
+#  'station_gaw_type': None,
+#  'station_landuse': None,
+#  'station_latitude': 38.366667,
+#  'station_longitude': 23.083333,
+#  'station_name': 'Aliartos',
+#  'station_other_ids': None,
+#  'station_setting': None,
+#  'station_state_code': None,
+#  'station_wdca_id': None,
+#  'station_wmo_region': None}
 # GR0001R - Aliartos
 # DK0008R - Anholt
 # GB0031R - Aston Hill
@@ -200,4 +215,4 @@ print(len(sites))
 # GB0045R - Wicken Fen
 # GB0013R - Yarner Wood
 # DE0009R - Zingst
-# 41
+# Number of stations: 41
