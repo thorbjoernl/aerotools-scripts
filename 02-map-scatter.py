@@ -36,7 +36,7 @@ def fetch_json(path: str) -> dict:
         return None
     
 
-def get_map_data(varname: str, obsnetwork: str, model: str, layer: str, period: str, season: str, statistics: str):
+def get_map_data(varname: str, obsnetwork: str, model: str, layer: str, period: str, season: str, statistics: str) -> dict:
     """
     Fetches the statistics map data that would displayed on the map on Aeroval for the given arguments. 
     The returned dictionary includes the following keys:
@@ -70,7 +70,7 @@ def get_map_data(varname: str, obsnetwork: str, model: str, layer: str, period: 
 
     return result
 
-def get_ts(varname: str, region: str, model: str, obsnetwork: str, layer: str, period: str, season: str, frequency: str):
+def get_ts(varname: str, region: str, model: str, obsnetwork: str, layer: str, period: str, season: str, frequency: str) -> dict:
     """
     Returns ts plot data as shown on Aeroval for the provided arguments.
     """
@@ -101,7 +101,7 @@ def get_scatter(frequency: str, varname: str, obsnetwork: str, layer: str, model
     }
 map_data = get_map_data("concNno", "EBAS-m", "v5.3", "Surface", "2022", "DJF", "yearly")
 
-print(map_data[0]["statistics"])
+pprint.pprint(map_data[0])
 
 for x in [x["station_name"] for x in map_data]:
     print(x)
@@ -111,7 +111,31 @@ scatter = get_scatter("yearly", "concNno", "EBAS-m", "Surface", "v5.3", "ALL", "
 pprint.pprint(scatter)
 
 # > python 02-map-scatter.py 
-# {'totnum': None, 'weighted': None, 'num_valid': None, 'refdata_mean': None, 'refdata_std': None, 'data_mean': None, 'data_std': None, 'rms': None, 'nmb': None, 'mnmb': None, 'mb': None, 'mab': None, 'fge': None, 'R': None, 'R_spearman': None, 'R_kendall': None, 'R_spatial_mean': None, 'R_spatial_median': None, 'R_temporal_mean': None, 'R_temporal_median': None}
+# {'altitude': 110.0,
+#  'latitude': 38.366667,
+#  'longtitude': 23.083333,
+#  'region': ['Greece'],
+#  'station_name': 'Aliartos',
+#  'statistics': {'R': None,
+#                 'R_kendall': None,
+#                 'R_spatial_mean': None,
+#                 'R_spatial_median': None,
+#                 'R_spearman': None,
+#                 'R_temporal_mean': None,
+#                 'R_temporal_median': None,
+#                 'data_mean': None,
+#                 'data_std': None,
+#                 'fge': None,
+#                 'mab': None,
+#                 'mb': None,
+#                 'mnmb': None,
+#                 'nmb': None,
+#                 'num_valid': None,
+#                 'refdata_mean': None,
+#                 'refdata_std': None,
+#                 'rms': None,
+#                 'totnum': None,
+#                 'weighted': None}}
 # Aliartos
 # Anholt
 # Aston Hill
