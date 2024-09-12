@@ -1,5 +1,5 @@
 import requests
-import simplejson
+import json
 import logging
 import pprint
 
@@ -28,7 +28,7 @@ def fetch_json(path: str) -> dict:
     logger.info(f"Fetching data from '{url}'")
     r = requests.get(url)
     if r.status_code == HTTP_OK:
-        return simplejson.loads(r.content)
+        return json.loads(r.content)
     else:
         logger.error(
             f"Fetching data from '{url}' failed with status code {r.status_code}"
