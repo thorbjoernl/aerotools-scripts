@@ -4,7 +4,7 @@ import requests
 import logging
 
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 PROJECT = "rv5_series"
 EXPERIMENT = "DSemep"
@@ -85,11 +85,55 @@ for exp in get_experiments(PROJECT):
     available_stations = get_station_names(PROJECT, exp, OBSNETWORK, VARNAME, LAYER, MODEL, PERIOD)
     if available_stations:
         ts_data[exp] = {}
-    print(available_stations) 
     for station in available_stations:
         ts_data[exp][station] = get_ts(VARNAME, station, MODEL, OBSNETWORK, LAYER, PERIOD, SEASON, FREQUENCY)
         
 
-#pprint.pprint(ts_data)
+pprint.pprint(ts_data["DSemep"]["Ulborg"])
 
-pprint.pprint(ts_data["DSemep"])
+# > python 03-ts-all-experiments.py
+# ...
+# {'date': [1642204800000,
+#          1644883200000,
+#          1647302400000,
+#          1649980800000,
+#          1652572800000,
+#          1655251200000,
+#          1657843200000,
+#          1660521600000,
+#          1663200000000,
+#          1665792000000,
+#          1668470400000,
+#          1671062400000],
+# 'mod': [0.01544,
+#         0.02262,
+#         0.11107,
+#         0.09903,
+#         0.06891,
+#         0.06558,
+#         0.12066,
+#         None,
+#         None,
+#         0.06131,
+#         0.03328,
+#         0.03677],
+# 'mod_unit': 'ug N m-3',
+# 'mod_var': 'concNno',
+# 'model_name': 'v5.3',
+# 'obs': [-0.02536,
+#         -0.1396,
+#         0.18742,
+#         0.19061,
+#         0.11795,
+#         0.07586,
+#         0.13181,
+#         None,
+#         None,
+#         0.05669,
+#         -0.1508,
+#         0.19174],
+# 'obs_name': 'EBAS-m',
+# 'obs_unit': 'ug N m-3',
+# 'obs_var': 'concNno',
+# 'pyaerocom_version': '0.21.0',
+# 'station_name': 'Ulborg'}

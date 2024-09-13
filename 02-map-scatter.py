@@ -3,7 +3,7 @@ import json
 import logging
 import pprint
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 PROJECT = "rv5_series"
 EXPERIMENT = "DSemep"
