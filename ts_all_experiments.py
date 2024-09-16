@@ -106,29 +106,29 @@ def get_ts(
 
     return new
 
+if __name__ == "__main__":
+    LAYER = "Surface"
+    VARNAME = "concNno"
+    PERIOD = "2022"
+    MODEL = "v5.3"
+    OBSNETWORK = "EBAS-m"
+    SEASON = "all"
+    FREQUENCY = "monthly"
 
-LAYER = "Surface"
-VARNAME = "concNno"
-PERIOD = "2022"
-MODEL = "v5.3"
-OBSNETWORK = "EBAS-m"
-SEASON = "all"
-FREQUENCY = "monthly"
-
-ts_data = {}
-for exp in get_experiments(PROJECT):
-    available_stations = get_station_names(
-        PROJECT, exp, OBSNETWORK, VARNAME, LAYER, MODEL, PERIOD
-    )
-    if available_stations:
-        ts_data[exp] = {}
-    for station in available_stations:
-        ts_data[exp][station] = get_ts(
-            VARNAME, station, MODEL, OBSNETWORK, LAYER, PERIOD, SEASON, FREQUENCY
+    ts_data = {}
+    for exp in get_experiments(PROJECT):
+        available_stations = get_station_names(
+            PROJECT, exp, OBSNETWORK, VARNAME, LAYER, MODEL, PERIOD
         )
+        if available_stations:
+            ts_data[exp] = {}
+        for station in available_stations:
+            ts_data[exp][station] = get_ts(
+                VARNAME, station, MODEL, OBSNETWORK, LAYER, PERIOD, SEASON, FREQUENCY
+            )
 
 
-pprint.pprint(ts_data["DSemep"]["Ulborg"])
+    pprint.pprint(ts_data["DSemep"]["Ulborg"])
 
 # > python 03-ts-all-experiments.py
 # ...

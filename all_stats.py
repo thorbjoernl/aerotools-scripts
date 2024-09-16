@@ -75,26 +75,27 @@ def filter_heatmap(
     return data
 
 
-menu = process_menu(PROJECT, EXPERIMENT)
+if __name__ == "__main__":
+    menu = process_menu(PROJECT, EXPERIMENT)
 
-data = fetch_heatmap(PROJECT, EXPERIMENT, "monthly", "ALL", "2022-all")
+    data = fetch_heatmap(PROJECT, EXPERIMENT, "monthly", "ALL", "2022-all")
 
-result = {}
-for var in menu["varnames"]:
-    result[var] = {}
-    for obsnetwork in menu["obsnetworks"]:
-        result[var][obsnetwork] = {}
-        for mod in menu["models"]:
-            result[var][obsnetwork][mod] = filter_heatmap(
-                data, obsnetwork, mod, var, "ALL", "2022", "all"
-            )
+    result = {}
+    for var in menu["varnames"]:
+        result[var] = {}
+        for obsnetwork in menu["obsnetworks"]:
+            result[var][obsnetwork] = {}
+            for mod in menu["models"]:
+                result[var][obsnetwork][mod] = filter_heatmap(
+                    data, obsnetwork, mod, var, "ALL", "2022", "all"
+                )
 
 
-# result is now a nested dict with the stats values found here: https://aeroval-test.met.no/davids/pages/overall/?project=rv5_series&experiment=DSemep&season=All&region=ALL
-# Individual stats can be accessed as follows: result[varname][obsnetwork][model]["R"]
-print(f"Stats names: {list(result['concNno']['EBAS-m']['v5.3'])}")
+    # result is now a nested dict with the stats values found here: https://aeroval-test.met.no/davids/pages/overall/?project=rv5_series&experiment=DSemep&season=All&region=ALL
+    # Individual stats can be accessed as follows: result[varname][obsnetwork][model]["R"]
+    print(f"Stats names: {list(result['concNno']['EBAS-m']['v5.3'])}")
 
-pprint.pprint(result["concNno"])
+    pprint.pprint(result["concNno"])
 # OUTPUT:
 # Stats names: ['totnum', 'weighted', 'num_valid', 'refdata_mean', 'refdata_std', 'data_mean', 'data_std', 'rms', 'nmb', 'mnmb', 'mb', 'mab', 'fge', 'R', 'R_spearman', 'R_kendall', 'num_coords_tot', 'num_coords_with_data', 'R_spatial_mean', 'R_temporal_median']
 # {'EBAS-d': {'v5.0': {'R': 0.588441,

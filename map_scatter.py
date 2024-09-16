@@ -150,21 +150,22 @@ class FetchHelper():
             ),
         }
 
-# Instantiate class for fetching scatter and ts data for a project/experiment.
-fetch = FetchHelper(PROJECT, EXPERIMENT)
+if __name__ == "__main__":
+    # Instantiate class for fetching scatter and ts data for a project/experiment.
+    fetch = FetchHelper(PROJECT, EXPERIMENT)
 
-map_data = fetch.get_map_data("concNno", "EBAS-m", "v5.3", "Surface", "2022", "DJF", "yearly")
+    map_data = fetch.get_map_data("concNno", "EBAS-m", "v5.3", "Surface", "2022", "DJF", "yearly")
 
-pprint.pprint(map_data[0])
+    pprint.pprint(map_data[0])
 
-for x in [x["station_name"] for x in map_data]:
-    print(x)
+    for x in [x["station_name"] for x in map_data]:
+        print(x)
 
-scatter = fetch.get_scatter(
-    "yearly", "concNno", "EBAS-m", "Surface", "v5.3", "ALL", "2022", "all"
-)
+    scatter = fetch.get_scatter(
+        "yearly", "concNno", "EBAS-m", "Surface", "v5.3", "ALL", "2022", "all"
+    )
 
-pprint.pprint(scatter)
+    pprint.pprint(scatter)
 
 # > python 02-map-scatter.py
 # {'altitude': 110.0,

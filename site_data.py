@@ -146,22 +146,24 @@ def get_site_data(
 
     return result
 
+if __name__ == "__main__":
 
-sites = get_site_data("concNno", "EBAS-m", "v5.3", "Surface", time_config)
 
-# Show full record for the first entry:
-pprint.pprint(sites["GR0001R"])
+    sites = get_site_data("concNno", "EBAS-m", "v5.3", "Surface", time_config)
 
-# List names for all entries:
-for station_code in sites:
-    print(f"{station_code} - {sites[station_code]['station_name']}")
+    # Show full record for the first entry:
+    pprint.pprint(sites["GR0001R"])
 
-sites = get_site_data("concNnh3", "EBAS-m", "v5.3", "Surface", time_config)
+    # List names for all entries:
+    for station_code in sites:
+        print(f"{station_code} - {sites[station_code]['station_name']}")
 
-pprint.pprint(sites["ES0031U"])
-print(
-    f"Number of stations: {len(sites)}"
-)  # Should match count shown at https://aeroval-test.met.no/davids/pages/evaluation/?project=rv5_series&experiment=DSemep&station=ALL
+    sites = get_site_data("concNnh3", "EBAS-m", "v5.3", "Surface", time_config)
+
+    pprint.pprint(sites["ES0031U"])
+    print(
+        f"Number of stations: {len(sites)}"
+    )  # Should match count shown at https://aeroval-test.met.no/davids/pages/evaluation/?project=rv5_series&experiment=DSemep&station=ALL
 # > python 01-site-data.py
 # {'platform_code': 'GR0001S',
 #  'station_airs_id': None,
