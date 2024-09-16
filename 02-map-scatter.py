@@ -18,6 +18,7 @@ DATAPATH = "davids"  # Data Path value used only for aeroval-test.
 
 HTTP_OK = 200
 
+
 def fetch_json(path: str) -> dict:
     """
     Helper function to fetch and parse json from some path on api.aeroval[-test].met.no.
@@ -36,11 +37,19 @@ def fetch_json(path: str) -> dict:
             f"Fetching data from '{url}' failed with status code {r.status_code}"
         )
         return None
-    
 
-def get_map_data(varname: str, obsnetwork: str, model: str, layer: str, period: str, season: str, statistics: str) -> dict:
+
+def get_map_data(
+    varname: str,
+    obsnetwork: str,
+    model: str,
+    layer: str,
+    period: str,
+    season: str,
+    statistics: str,
+) -> dict:
     """
-    Fetches the statistics map data that would displayed on the map on Aeroval for the given arguments. 
+    Fetches the statistics map data that would displayed on the map on Aeroval for the given arguments.
     The returned dictionary includes the following keys:
     - station_name
     - latitude
@@ -60,48 +69,88 @@ def get_map_data(varname: str, obsnetwork: str, model: str, layer: str, period: 
             continue
         if not f"{period}-{season}" in station[statistics]:
             continue
-        
+
         new["station_name"] = station["station_name"]
         new["latitude"] = station["latitude"]
         new["longtitude"] = station["longitude"]
         new["altitude"] = station["altitude"]
         new["region"] = station["region"]
         new["statistics"] = station[statistics][f"{period}-{season}"]
-        
+
         result.append(new)
 
     return result
 
-def get_ts(varname: str, region: str, model: str, obsnetwork: str, layer: str, period: str, season: str, frequency: str) -> dict:
+
+def get_ts(
+    varname: str,
+    region: str,
+    model: str,
+    obsnetwork: str,
+    layer: str,
+    period: str,
+    season: str,
+    frequency: str,
+) -> dict:
     """
     Returns ts plot data as shown on Aeroval for the provided arguments.
     """
-    scatter = fetch_json(f"/ts/{PROJECT}/{EXPERIMENT}/{region}/{obsnetwork}/{varname}/{layer}")
+    scatter = fetch_json(
+        f"/ts/{PROJECT}/{EXPERIMENT}/{region}/{obsnetwork}/{varname}/{layer}"
+    )
 
     new = {
         # Timestamps are in milliseconds since 1970-01-01
-        "date": [datetime.datetime.fromtimestamp(x/1000) for x in scatter[model][f"{frequency}_date"]],
+        "date": [
+            datetime.datetime.fromtimestamp(x / 1000)
+            for x in scatter[model][f"{frequency}_date"]
+        ],
         "obs": scatter[model][f"{frequency}_obs"],
         "mod": scatter[model][f"{frequency}_mod"],
     }
 
     # Keep additional metadata about the time series.
-    for k in ("station_name", "pyaerocom_version", "obs_var", "mod_var", "obs_unit", "mod_unit", "obs_name", "model_name"):
+    for k in (
+        "station_name",
+        "pyaerocom_version",
+        "obs_var",
+        "mod_var",
+        "obs_unit",
+        "mod_unit",
+        "obs_name",
+        "model_name",
+    ):
         new[k] = scatter[model][k]
 
     return new
 
-def get_scatter(frequency: str, varname: str, obsnetwork: str, layer: str, model: str, region: str, period: str, season: str):
+
+def get_scatter(
+    frequency: str,
+    varname: str,
+    obsnetwork: str,
+    layer: str,
+    model: str,
+    region: str,
+    period: str,
+    season: str,
+):
     """
     Returns details about the scatterplot for the parameter combination provided. Information on the scatterplot consists
     of the correlation statistics and the timeseries data which is returned as a dict of the form {"stats": ..., "ts": ...}
     """
-    scat = fetch_json(f"/regional_statistics/{PROJECT}/{EXPERIMENT}/{frequency}/{varname}/{obsnetwork}/{layer}")
+    scat = fetch_json(
+        f"/regional_statistics/{PROJECT}/{EXPERIMENT}/{frequency}/{varname}/{obsnetwork}/{layer}"
+    )
 
     return {
         "stats": scat[model][varname][region][f"{period}-{season}"],
-        "ts": get_ts(varname, region, model, obsnetwork, layer, period, season, frequency)
+        "ts": get_ts(
+            varname, region, model, obsnetwork, layer, period, season, frequency
+        ),
     }
+
+
 map_data = get_map_data("concNno", "EBAS-m", "v5.3", "Surface", "2022", "DJF", "yearly")
 
 pprint.pprint(map_data[0])
@@ -109,11 +158,13 @@ pprint.pprint(map_data[0])
 for x in [x["station_name"] for x in map_data]:
     print(x)
 
-scatter = get_scatter("yearly", "concNno", "EBAS-m", "Surface", "v5.3", "ALL", "2022", "all")
+scatter = get_scatter(
+    "yearly", "concNno", "EBAS-m", "Surface", "v5.3", "ALL", "2022", "all"
+)
 
 pprint.pprint(scatter)
 
-# > python 02-map-scatter.py 
+# > python 02-map-scatter.py
 # {'altitude': 110.0,
 #  'latitude': 38.366667,
 #  'longtitude': 23.083333,

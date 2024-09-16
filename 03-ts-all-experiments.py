@@ -17,6 +17,7 @@ DATAPATH = "davids"  # Data Path value used only for aeroval-test.
 
 HTTP_OK = 200
 
+
 def fetch_json(path: str) -> dict:
     """
     Helper function to fetch and parse json from some path on api.aeroval[-test].met.no.
@@ -36,6 +37,7 @@ def fetch_json(path: str) -> dict:
         )
         return None
 
+
 def get_experiments(project: str) -> list[str]:
     """
     Lists the public experiments for the project.
@@ -44,21 +46,44 @@ def get_experiments(project: str) -> list[str]:
 
     return [e for e in experiments if experiments[e]["public"]]
 
-def get_station_names(project: str, experiment: str, obs_network: str, varname: str, layer: str, model: str, period: str) -> list:
+
+def get_station_names(
+    project: str,
+    experiment: str,
+    obs_network: str,
+    varname: str,
+    layer: str,
+    model: str,
+    period: str,
+) -> list:
     """
     Fetches the available station names for the parameters provided.
     """
-    data = fetch_json(f"/map/{project}/{experiment}/{obs_network}/{varname}/{layer}/{model}/{varname}/{period}")
+    data = fetch_json(
+        f"/map/{project}/{experiment}/{obs_network}/{varname}/{layer}/{model}/{varname}/{period}"
+    )
     if data is None:
         return []
-    
+
     return [x["station_name"] for x in data]
 
-def get_ts(varname: str, region: str, model: str, obsnetwork: str, layer: str, period: str, season: str, frequency: str) -> dict:
+
+def get_ts(
+    varname: str,
+    region: str,
+    model: str,
+    obsnetwork: str,
+    layer: str,
+    period: str,
+    season: str,
+    frequency: str,
+) -> dict:
     """
     Returns ts plot data as shown on Aeroval for the provided arguments.
     """
-    scatter = fetch_json(f"/ts/{PROJECT}/{EXPERIMENT}/{region}/{obsnetwork}/{varname}/{layer}")
+    scatter = fetch_json(
+        f"/ts/{PROJECT}/{EXPERIMENT}/{region}/{obsnetwork}/{varname}/{layer}"
+    )
 
     new = {
         "date": scatter[model][f"{frequency}_date"],
@@ -67,10 +92,20 @@ def get_ts(varname: str, region: str, model: str, obsnetwork: str, layer: str, p
     }
 
     # Keep additional metadata about the time series.
-    for k in ("station_name", "pyaerocom_version", "obs_var", "mod_var", "obs_unit", "mod_unit", "obs_name", "model_name"):
+    for k in (
+        "station_name",
+        "pyaerocom_version",
+        "obs_var",
+        "mod_var",
+        "obs_unit",
+        "mod_unit",
+        "obs_name",
+        "model_name",
+    ):
         new[k] = scatter[model][k]
 
     return new
+
 
 LAYER = "Surface"
 VARNAME = "concNno"
@@ -82,12 +117,16 @@ FREQUENCY = "monthly"
 
 ts_data = {}
 for exp in get_experiments(PROJECT):
-    available_stations = get_station_names(PROJECT, exp, OBSNETWORK, VARNAME, LAYER, MODEL, PERIOD)
+    available_stations = get_station_names(
+        PROJECT, exp, OBSNETWORK, VARNAME, LAYER, MODEL, PERIOD
+    )
     if available_stations:
         ts_data[exp] = {}
     for station in available_stations:
-        ts_data[exp][station] = get_ts(VARNAME, station, MODEL, OBSNETWORK, LAYER, PERIOD, SEASON, FREQUENCY)
-        
+        ts_data[exp][station] = get_ts(
+            VARNAME, station, MODEL, OBSNETWORK, LAYER, PERIOD, SEASON, FREQUENCY
+        )
+
 
 pprint.pprint(ts_data["DSemep"]["Ulborg"])
 

@@ -16,6 +16,7 @@ DATAPATH = "davids"  # Data Path value used only for aeroval-test.
 
 HTTP_OK = 200
 
+
 def fetch_json(path: str) -> dict:
     """
     Helper function to fetch and parse json from some path on api.aeroval[-test].met.no.
@@ -35,6 +36,7 @@ def fetch_json(path: str) -> dict:
         )
         return None
 
+
 def process_menu(project: str, experiment: str) -> dict:
     """
     Returns details about varnames, obsnetworks and models parsed from
@@ -45,22 +47,33 @@ def process_menu(project: str, experiment: str) -> dict:
     var_names = list(menu)
     obs_networks = list(menu[var_names[0]]["obs"])
     models = list(menu[var_names[0]]["obs"][obs_networks[0]][LAYER])
-    return {
-        "varnames": var_names,
-        "obsnetworks": obs_networks,
-        "models": models
-    }
+    return {"varnames": var_names, "obsnetworks": obs_networks, "models": models}
 
-def fetch_heatmap(project: str, experiment: str, frequency: str, region: str, period: str) -> dict:
+
+def fetch_heatmap(
+    project: str, experiment: str, frequency: str, region: str, period: str
+) -> dict:
     return fetch_json(f"/heatmap/{project}/{experiment}/{frequency}/{region}/{period}")
 
-def filter_heatmap(data, obsnetwork: str, model: str, varname: str, region: str, period: str, season: str):
+
+def filter_heatmap(
+    data,
+    obsnetwork: str,
+    model: str,
+    varname: str,
+    region: str,
+    period: str,
+    season: str,
+):
     try:
-        data = data[varname][obsnetwork][LAYER][model][varname][region][f"{period}-{season}"]
+        data = data[varname][obsnetwork][LAYER][model][varname][region][
+            f"{period}-{season}"
+        ]
     except:
         data = {}
 
     return data
+
 
 menu = process_menu(PROJECT, EXPERIMENT)
 
@@ -72,7 +85,9 @@ for var in menu["varnames"]:
     for obsnetwork in menu["obsnetworks"]:
         result[var][obsnetwork] = {}
         for mod in menu["models"]:
-            result[var][obsnetwork][mod] = filter_heatmap(data, obsnetwork, mod, var, "ALL", "2022", "all")
+            result[var][obsnetwork][mod] = filter_heatmap(
+                data, obsnetwork, mod, var, "ALL", "2022", "all"
+            )
 
 
 # result is now a nested dict with the stats values found here: https://aeroval-test.met.no/davids/pages/overall/?project=rv5_series&experiment=DSemep&season=All&region=ALL
@@ -81,8 +96,8 @@ print(f"Stats names: {list(result['concNno']['EBAS-m']['v5.3'])}")
 
 pprint.pprint(result["concNno"])
 # OUTPUT:
-#Stats names: ['totnum', 'weighted', 'num_valid', 'refdata_mean', 'refdata_std', 'data_mean', 'data_std', 'rms', 'nmb', 'mnmb', 'mb', 'mab', 'fge', 'R', 'R_spearman', 'R_kendall', 'num_coords_tot', 'num_coords_with_data', 'R_spatial_mean', 'R_temporal_median']
-#{'EBAS-d': {'v5.0': {'R': 0.588441,
+# Stats names: ['totnum', 'weighted', 'num_valid', 'refdata_mean', 'refdata_std', 'data_mean', 'data_std', 'rms', 'nmb', 'mnmb', 'mb', 'mab', 'fge', 'R', 'R_spearman', 'R_kendall', 'num_coords_tot', 'num_coords_with_data', 'R_spatial_mean', 'R_temporal_median']
+# {'EBAS-d': {'v5.0': {'R': 0.588441,
 #                     'R_kendall': 0.577755,
 #                     'R_spatial_mean': 0.671487,
 #                     'R_spearman': 0.761363,

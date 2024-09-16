@@ -56,7 +56,7 @@ def build_station_code_lookup_table() -> dict[str, str]:
     rows = cur.fetchall()
     lookup = {}
     for row in rows:
-        name = row["station_name"]
+        name = row["station_name"].strip()
         if name in rows:
             raise Exception(
                 "Duplicate station name. Reverse lookup of station name not possible."
@@ -156,8 +156,13 @@ pprint.pprint(sites["GR0001R"])
 for station_code in sites:
     print(f"{station_code} - {sites[station_code]['station_name']}")
 
-print(f"Number of stations: {len(sites)}") # Should match count shown at https://aeroval-test.met.no/davids/pages/evaluation/?project=rv5_series&experiment=DSemep&station=ALL 
-# > python 01-site-data.py 
+sites = get_site_data("concNnh3", "EBAS-m", "v5.3", "Surface", time_config)
+
+pprint.pprint(sites["ES0031U"])
+print(
+    f"Number of stations: {len(sites)}"
+)  # Should match count shown at https://aeroval-test.met.no/davids/pages/evaluation/?project=rv5_series&experiment=DSemep&station=ALL
+# > python 01-site-data.py
 # {'platform_code': 'GR0001S',
 #  'station_airs_id': None,
 #  'station_altitude': 110.0,
