@@ -2,6 +2,8 @@ import requests
 import json
 import logging
 import pprint
+import datetime
+
 
 logger = logging.getLogger(__name__)
 
@@ -77,7 +79,8 @@ def get_ts(varname: str, region: str, model: str, obsnetwork: str, layer: str, p
     scatter = fetch_json(f"/ts/{PROJECT}/{EXPERIMENT}/{region}/{obsnetwork}/{varname}/{layer}")
 
     new = {
-        "date": scatter[model][f"{frequency}_date"],
+        # Timestamps are in milliseconds since 1970-01-01
+        "date": [datetime.datetime.fromtimestamp(x/1000) for x in scatter[model][f"{frequency}_date"]],
         "obs": scatter[model][f"{frequency}_obs"],
         "mod": scatter[model][f"{frequency}_mod"],
     }
