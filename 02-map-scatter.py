@@ -18,7 +18,6 @@ DATAPATH = "davids"  # Data Path value used only for aeroval-test.
 
 HTTP_OK = 200
 
-
 def fetch_json(path: str) -> dict:
     """
     Helper function to fetch and parse json from some path on api.aeroval[-test].met.no.
@@ -37,128 +36,131 @@ def fetch_json(path: str) -> dict:
             f"Fetching data from '{url}' failed with status code {r.status_code}"
         )
         return None
+class FetchHelper():
+    def __init__(self, project: str, experiment: str):
+        self._project = project
+        self._experiment = experiment
 
+    def get_ts(self,
+        varname: str,
+        region: str,
+        model: str,
+        obsnetwork: str,
+        layer: str,
+        frequency: str,
+    ) -> dict:
+        """
+        Returns ts plot data as shown on Aeroval for the provided arguments.
+        """
+        scatter = fetch_json(
+            f"/ts/{self._project}/{self._experiment}/{region}/{obsnetwork}/{varname}/{layer}"
+        )
 
-def get_map_data(
-    varname: str,
-    obsnetwork: str,
-    model: str,
-    layer: str,
-    period: str,
-    season: str,
-    statistics: str,
-) -> dict:
-    """
-    Fetches the statistics map data that would displayed on the map on Aeroval for the given arguments.
-    The returned dictionary includes the following keys:
-    - station_name
-    - latitude
-    - longitude
-    - altitude
-    - region
-    - statistics - The subset of statistics values that matches period,season,statisics constraints.
-    """
-    map_data = fetch_json(
-        f"/map/{PROJECT}/{EXPERIMENT}/{obsnetwork}/{varname}/{layer}/{model}/{varname}/{period}"
-    )
+        new = {
+            # Timestamps are in milliseconds since 1970-01-01
+            "date": [
+                datetime.datetime.fromtimestamp(x / 1000)
+                for x in scatter[model][f"{frequency}_date"]
+            ],
+            "obs": scatter[model][f"{frequency}_obs"],
+            "mod": scatter[model][f"{frequency}_mod"],
+        }
 
-    result = []
-    for station in map_data:
-        new = {}
-        if not statistics in station:
-            continue
-        if not f"{period}-{season}" in station[statistics]:
-            continue
+        # Keep additional metadata about the time series.
+        for k in (
+            "station_name",
+            "pyaerocom_version",
+            "obs_var",
+            "mod_var",
+            "obs_unit",
+            "mod_unit",
+            "obs_name",
+            "model_name",
+        ):
+            new[k] = scatter[model][k]
 
-        new["station_name"] = station["station_name"]
-        new["latitude"] = station["latitude"]
-        new["longtitude"] = station["longitude"]
-        new["altitude"] = station["altitude"]
-        new["region"] = station["region"]
-        new["statistics"] = station[statistics][f"{period}-{season}"]
+        return new
 
-        result.append(new)
+    def get_map_data(
+        self,
+        varname: str,
+        obsnetwork: str,
+        model: str,
+        layer: str,
+        period: str,
+        season: str,
+        statistics: str,
+    ) -> dict:
+        """
+        Fetches the statistics map data that would displayed on the map on Aeroval for the given arguments.
+        The returned dictionary includes the following keys:
+        - station_name
+        - latitude
+        - longitude
+        - altitude
+        - region
+        - statistics - The subset of statistics values that matches period,season,statisics constraints.
+        """
+        map_data = fetch_json(
+            f"/map/{self._project}/{self._experiment}/{obsnetwork}/{varname}/{layer}/{model}/{varname}/{period}"
+        )
 
-    return result
+        result = []
+        for station in map_data:
+            new = {}
+            if not statistics in station:
+                continue
+            if not f"{period}-{season}" in station[statistics]:
+                continue
 
+            new["station_name"] = station["station_name"]
+            new["latitude"] = station["latitude"]
+            new["longtitude"] = station["longitude"]
+            new["altitude"] = station["altitude"]
+            new["region"] = station["region"]
+            new["statistics"] = station[statistics][f"{period}-{season}"]
 
-def get_ts(
-    varname: str,
-    region: str,
-    model: str,
-    obsnetwork: str,
-    layer: str,
-    period: str,
-    season: str,
-    frequency: str,
-) -> dict:
-    """
-    Returns ts plot data as shown on Aeroval for the provided arguments.
-    """
-    scatter = fetch_json(
-        f"/ts/{PROJECT}/{EXPERIMENT}/{region}/{obsnetwork}/{varname}/{layer}"
-    )
+            result.append(new)
 
-    new = {
-        # Timestamps are in milliseconds since 1970-01-01
-        "date": [
-            datetime.datetime.fromtimestamp(x / 1000)
-            for x in scatter[model][f"{frequency}_date"]
-        ],
-        "obs": scatter[model][f"{frequency}_obs"],
-        "mod": scatter[model][f"{frequency}_mod"],
-    }
-
-    # Keep additional metadata about the time series.
-    for k in (
-        "station_name",
-        "pyaerocom_version",
-        "obs_var",
-        "mod_var",
-        "obs_unit",
-        "mod_unit",
-        "obs_name",
-        "model_name",
+        return result
+    
+    def get_scatter(
+        self,
+        frequency: str,
+        varname: str,
+        obsnetwork: str,
+        layer: str,
+        model: str,
+        region: str,
+        period: str,
+        season: str,
     ):
-        new[k] = scatter[model][k]
+        """
+        Returns details about the scatterplot for the parameter combination provided. Information on the scatterplot consists
+        of the correlation statistics and the timeseries data which is returned as a dict of the form {"stats": ..., "ts": ...}
+        """
+        scat = fetch_json(
+            f"/regional_statistics/{self._project}/{self._experiment}/{frequency}/{varname}/{obsnetwork}/{layer}"
+        )
 
-    return new
+        return {
+            "stats": scat[model][varname][region][f"{period}-{season}"],
+            "ts": self.get_ts(
+                varname, region, model, obsnetwork, layer, frequency
+            ),
+        }
 
+# Instantiate class for fetching scatter and ts data for a project/experiment.
+fetch = FetchHelper(PROJECT, EXPERIMENT)
 
-def get_scatter(
-    frequency: str,
-    varname: str,
-    obsnetwork: str,
-    layer: str,
-    model: str,
-    region: str,
-    period: str,
-    season: str,
-):
-    """
-    Returns details about the scatterplot for the parameter combination provided. Information on the scatterplot consists
-    of the correlation statistics and the timeseries data which is returned as a dict of the form {"stats": ..., "ts": ...}
-    """
-    scat = fetch_json(
-        f"/regional_statistics/{PROJECT}/{EXPERIMENT}/{frequency}/{varname}/{obsnetwork}/{layer}"
-    )
-
-    return {
-        "stats": scat[model][varname][region][f"{period}-{season}"],
-        "ts": get_ts(
-            varname, region, model, obsnetwork, layer, period, season, frequency
-        ),
-    }
-
-
-map_data = get_map_data("concNno", "EBAS-m", "v5.3", "Surface", "2022", "DJF", "yearly")
+map_data = fetch.get_map_data("concNno", "EBAS-m", "v5.3", "Surface", "2022", "DJF", "yearly")
 
 pprint.pprint(map_data[0])
 
 for x in [x["station_name"] for x in map_data]:
     print(x)
 
-scatter = get_scatter(
+scatter = fetch.get_scatter(
     "yearly", "concNno", "EBAS-m", "Surface", "v5.3", "ALL", "2022", "all"
 )
 
