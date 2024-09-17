@@ -4,13 +4,21 @@ import pyaro.timeseries
 import pathlib
 import re
 import logging
+from pyaerocom.io.ebas_varinfo import EbasVarInfo
+from pyaerocom import const
 
 logger = logging.getLogger(__name__)
+
+vars = const.VARS
 
 FOLDER_TO_READ = pathlib.Path("./ebas_test_data")
 
 
-VAR_NAME = 'pm25#total_carbon#ug C m-3'
+def ebas_components_for_aerocom_variable(aerocom_variable: str):
+    return EbasVarInfo(aerocom_variable)["component"]
+
+#print(ebas_components_for_aerocom_variable("conco3"))
+VAR_NAME = 'conctc'
 SITE = 'AT0002R'
 
 pattern = re.compile(f"/{SITE}\.")
@@ -18,33 +26,46 @@ pattern = re.compile(f"/{SITE}\.")
 if __name__ == "__main__":
     engines = pyaro.list_timeseries_engines()
 
+    ebas_var = None
+    # ebas_var = 'pm25#total_carbon#ug C m-3'
     for f in FOLDER_TO_READ.iterdir():
         if not (SITE in str(f)):
             # Using the pyaro stations filter requires reading all the data before filtering.
             # Applying this extra filter step to prevent unneccessary filter step (since files
             # include station id in their file name)
-            print(f"Skipping file '{f}' due to not including site id in filename.")
+            #print(f"Skipping file '{f}' due to not including site id in filename.")
             continue
 
         print(f"Processing file '{f}'...")
 
         with engines["nilupmfebas"].open(f,
                 filters=[pyaro.timeseries.filters.get("stations", include=[SITE])]) as ts:
+            
+            # Pyaerocom variables can map to multiple ebas components, therefore it is difficult to know
+            # what to return. If ebas_var is None, we try to find a component that matches the pyaerocom 
+            # variable defined in VAR_NAME and then keep that.
+            if ebas_var is None: 
+                for x in ebas_components_for_aerocom_variable(VAR_NAME):
+                    for y in ts.variables():
+                        if f"#{x}#" in y:
+                            print(f"Using variable name '{y}'")
+                            ebas_var = y
 
-            data: pyaro.timeseries.NpStructuredData = ts.data(VAR_NAME)
-            df = pd.DataFrame({
-                "start_time": data.start_times,
-                "end_time": data.end_times,
-                "latitude": data.latitudes,
-                "longitude": data.longitudes,
-                "altitude": data.altitudes,
-                "station": data.stations,
-                "flag": data.flags,
-                "value": data.values,
-                "stdev": data.standard_deviations,
-            })
+            if ebas_var is not None:
+                data: pyaro.timeseries.NpStructuredData = ts.data(ebas_var)
+                df = pd.DataFrame({
+                    "start_time": data.start_times,
+                    "end_time": data.end_times,
+                    "latitude": data.latitudes,
+                    "longitude": data.longitudes,
+                    "altitude": data.altitudes,
+                    "station": data.stations,
+                    "flag": data.flags,
+                    "value": data.values,
+                    "stdev": data.standard_deviations,
+                })
 
-            print(df)
+                print(df)
         #       start_time            end_time   latitude  longitude  altitude  station  flag      value  stdev
         #0  2017-11-30 2017-11-30 23:58:59  47.766666  16.766666     117.0  AT0002R     0   3.400000    NaN
         #1  2017-12-03 2017-12-03 23:58:59  47.766666  16.766666     117.0  AT0002R     0   4.390000    NaN
