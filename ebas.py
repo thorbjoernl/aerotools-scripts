@@ -1,65 +1,62 @@
-import pyaerocom
-import os
-from pyaerocom.io.ebas_varinfo import EbasVarInfo
-from pyaerocom.io.ebas_nasa_ames import EbasNasaAmesFile
+import pyaro
 import pandas as pd
+import pyaro.timeseries
 
+FILE_TO_READ = "./ebas_test_data"
 
-EBAS_DATA_DIR = (
-    "/lustre/storeB/project/aerocom/aerocom1/AEROCOM_OBSDATA/EBASMultiColumn/data"
-)
-VARIABLE = "conco3"
-SITE = "St. Osyth"
+VAR_NAME = 'pm25#total_carbon#ug C m-3'
+SITE = 'AT0002R'
 
-ebas_variable = EbasVarInfo(VARIABLE)["component"][0]
+engines = pyaro.list_timeseries_engines()
 
-file_index = pyaerocom.io.EbasFileIndex(f"{EBAS_DATA_DIR}/ebas_file_index.sqlite3")
+with engines["nilupmfebas"].open(FILE_TO_READ,
+        filters=[pyaro.timeseries.filters.get("stations", include=[SITE])]) as ts:
 
-print(ebas_variable)
-file_index = pyaerocom.io.EbasFileIndex(f"{EBAS_DATA_DIR}/ebas_file_index.sqlite3")
+    data: pyaro.timeseries.NpStructuredData = ts.data(VAR_NAME)
+    df = pd.DataFrame({
+        "start_time": data.start_times,
+        "end_time": data.end_times,
+        "latitude": data.latitudes,
+        "longitude": data.longitudes,
+        "altitude": data.altitudes,
+        "station": data.stations,
+        "flag": data.flags,
+        "value": data.values,
+        "stdev": data.standard_deviations,
+    })
 
-print(pyaerocom.io.EbasSQLRequest(variables=ebas_variable, station_names=SITE))
-
-# It takes quite some time to query for the list of files in Ebas, so caching the returned list of files.
-# cache.txt must be deleted when changing site and/or variable.
-if os.path.exists("cache.txt"):
-    with open("cache.txt", "r") as f:
-        files = [x.strip() for x in f.readlines()]
-else:
-    files = file_index.get_file_names(
-        pyaerocom.io.EbasSQLRequest(variables=ebas_variable, station_names=SITE)
-    )
-
-    with open("cache.txt", "w") as f:
-        f.writelines([f"{x}\n" for x in files])
-
-df = None
-for fp in files:
-    print(fp)
-    ebas = EbasNasaAmesFile(f"{EBAS_DATA_DIR}/data/{fp}")
-    print(ebas.col_names)
-    timestamps = ebas.compute_time_stamps()
-
-    dt = {
-        "start_time": timestamps[0],
-        "end_time": timestamps[1],
-        f"{ebas_variable}_1": ebas.data[:, 2],
-        f"{ebas_variable}_2": ebas.data[:, 3],
-        "numflag": ebas.data[:, 4],
-    }
-
-    if df is None:
-        df = pd.DataFrame(dt)
-    else:
-        df = pd.concat([df, pd.DataFrame(dt)])
-
-df = df.sort_values("start_time")
-
-
-print(df[:100])
-
-# with pyaro.list_timeseries_engines()["nilupmfebas"].open(f"{EBAS_DATA_DIR}/data",
-#        filters=[pyaro.timeseries.filters.get("stations", include=[SITE]),
-#                 pyaro.timeseries.filters.get("variables", include=[ebas_variable])]
-#                 ) as ts:
-#    print(ts.variables())
+    print(df)
+    #       start_time            end_time   latitude  longitude  altitude  station  flag      value  stdev
+    #0  2017-11-30 2017-11-30 23:58:59  47.766666  16.766666     117.0  AT0002R     0   3.400000    NaN
+    #1  2017-12-03 2017-12-03 23:58:59  47.766666  16.766666     117.0  AT0002R     0   4.390000    NaN
+    #2  2017-12-06 2017-12-06 23:58:59  47.766666  16.766666     117.0  AT0002R     0   3.870000    NaN
+    #3  2017-12-09 2017-12-09 23:58:59  47.766666  16.766666     117.0  AT0002R     0   1.450000    NaN
+    #4  2017-12-12 2017-12-12 23:58:59  47.766666  16.766666     117.0  AT0002R     0   1.430000    NaN
+    #5  2017-12-15 2017-12-15 23:58:59  47.766666  16.766666     117.0  AT0002R     0   6.370000    NaN
+    #6  2017-12-18 2017-12-18 23:58:59  47.766666  16.766666     117.0  AT0002R     0   2.610000    NaN
+    #7  2017-12-21 2017-12-21 23:58:59  47.766666  16.766666     117.0  AT0002R     0   3.830000    NaN
+    #8  2017-12-24 2017-12-24 23:58:59  47.766666  16.766666     117.0  AT0002R     0   2.640000    NaN
+    #9  2017-12-27 2017-12-27 23:58:59  47.766666  16.766666     117.0  AT0002R     0   3.490000    NaN
+    #10 2018-01-02 2018-01-02 23:58:59  47.766666  16.766666     117.0  AT0002R     0   4.000000    NaN
+    #11 2018-01-05 2018-01-05 23:58:59  47.766666  16.766666     117.0  AT0002R     0   7.730000    NaN
+    #12 2018-01-08 2018-01-08 23:58:59  47.766666  16.766666     117.0  AT0002R     0   4.600000    NaN
+    #13 2018-01-11 2018-01-11 23:58:59  47.766666  16.766666     117.0  AT0002R     0   3.490000    NaN
+    #14 2018-01-14 2018-01-14 23:58:59  47.766666  16.766666     117.0  AT0002R     0   3.750000    NaN
+    #15 2018-01-17 2018-01-17 23:58:59  47.766666  16.766666     117.0  AT0002R     0   2.000000    NaN
+    #16 2018-01-20 2018-01-20 23:58:59  47.766666  16.766666     117.0  AT0002R     0   3.700000    NaN
+    #17 2018-01-29 2018-01-29 23:58:59  47.766666  16.766666     117.0  AT0002R     0   6.990000    NaN
+    #18 2018-02-01 2018-02-01 23:58:59  47.766666  16.766666     117.0  AT0002R     0   5.340000    NaN
+    #19 2018-02-04 2018-02-04 23:58:59  47.766666  16.766666     117.0  AT0002R     0   2.620000    NaN
+    #20 2018-02-07 2018-02-07 23:58:59  47.766666  16.766666     117.0  AT0002R     0   5.230000    NaN
+    #21 2018-02-10 2018-02-10 23:58:59  47.766666  16.766666     117.0  AT0002R     0   6.230000    NaN
+    #22 2018-02-13 2018-02-13 23:58:59  47.766666  16.766666     117.0  AT0002R     0   2.550000    NaN
+    #23 2018-02-16 2018-02-16 23:58:59  47.766666  16.766666     117.0  AT0002R     0   8.220000    NaN
+    #24 2018-02-19 2018-02-19 23:58:59  47.766666  16.766666     117.0  AT0002R     0        NaN    NaN
+    #25 2018-02-22 2018-02-22 23:58:59  47.766666  16.766666     117.0  AT0002R     0        NaN    NaN
+    #26 2018-02-25 2018-02-25 23:58:59  47.766666  16.766666     117.0  AT0002R     0   7.090000    NaN
+    #27 2018-02-28 2018-02-28 23:58:59  47.766666  16.766666     117.0  AT0002R     0        NaN    NaN
+    #28 2018-03-03 2018-03-03 23:58:59  47.766666  16.766666     117.0  AT0002R     0  17.110001    NaN
+    #29 2018-03-06 2018-03-06 23:58:59  47.766666  16.766666     117.0  AT0002R     0  10.820000    NaN
+    #30 2018-03-09 2018-03-09 23:58:59  47.766666  16.766666     117.0  AT0002R     0   5.670000    NaN
+    #31 2018-03-12 2018-03-12 23:58:59  47.766666  16.766666     117.0  AT0002R     0   2.140000    NaN
+    #
