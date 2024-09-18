@@ -11,24 +11,33 @@ logger = logging.getLogger(__name__)
 
 vars = const.VARS
 
-FOLDER_TO_READ = pathlib.Path("./ebas_test_data")
+FOLDER_TO_READ = pathlib.Path("/lustre/storeB/project/aerocom/aerocom1/AEROCOM_OBSDATA/EBASMultiColumn/data/data")
 
+#for v in vars:
+#    try:
+#        if len(EbasVarInfo(v.var_name)["component"]) > 1:
+#            print(v.var_name, EbasVarInfo(v.var_name)["component"]) 
+#    except Exception:
+#        pass
 
 def ebas_components_for_aerocom_variable(aerocom_variable: str):
     return EbasVarInfo(aerocom_variable)["component"]
 
 #print(ebas_components_for_aerocom_variable("conco3"))
-VAR_NAME = 'conctc'
+VAR_NAME = 'concso4'
 SITE = 'AT0002R'
 
 pattern = re.compile(f"/{SITE}\.")
 
 if __name__ == "__main__":
     engines = pyaro.list_timeseries_engines()
-
+    result = None
     ebas_var = None
+    df = None
     # ebas_var = 'pm25#total_carbon#ug C m-3'
-    for f in FOLDER_TO_READ.iterdir():
+    files = list(FOLDER_TO_READ.iterdir())
+    for i, f in enumerate(files, start=1):
+        print(f"[{i}/{len(files)}] - {f}")
         if not (SITE in str(f)):
             # Using the pyaro stations filter requires reading all the data before filtering.
             # Applying this extra filter step to prevent unneccessary filter step (since files
@@ -41,31 +50,36 @@ if __name__ == "__main__":
         with engines["nilupmfebas"].open(f,
                 filters=[pyaro.timeseries.filters.get("stations", include=[SITE])]) as ts:
             
-            # Pyaerocom variables can map to multiple ebas components, therefore it is difficult to know
-            # what to return. If ebas_var is None, we try to find a component that matches the pyaerocom 
-            # variable defined in VAR_NAME and then keep that.
-            if ebas_var is None: 
-                for x in ebas_components_for_aerocom_variable(VAR_NAME):
-                    for y in ts.variables():
-                        if f"#{x}#" in y:
-                            print(f"Using variable name '{y}'")
-                            ebas_var = y
+            
+            for x in ebas_components_for_aerocom_variable(VAR_NAME):
+                for y in ts.variables():
+                    if f"#{x}#" in y:
+                        print(f"Using variable name '{y}'")
+                        ebas_var = y
 
-            if ebas_var is not None:
-                data: pyaro.timeseries.NpStructuredData = ts.data(ebas_var)
-                df = pd.DataFrame({
-                    "start_time": data.start_times,
-                    "end_time": data.end_times,
-                    "latitude": data.latitudes,
-                    "longitude": data.longitudes,
-                    "altitude": data.altitudes,
-                    "station": data.stations,
-                    "flag": data.flags,
-                    "value": data.values,
-                    "stdev": data.standard_deviations,
-                })
+                        data: pyaro.timeseries.NpStructuredData = ts.data(ebas_var)
+                        df = pd.DataFrame({
+                            "start_time": data.start_times,
+                            "end_time": data.end_times,
+                            "latitude": data.latitudes,
+                            "longitude": data.longitudes,
+                            "altitude": data.altitudes,
+                            "station": data.stations,
+                            "flag": data.flags,
+                            f"value_{ebas_var}": data.values,
+                            f"stdev_{ebas_var}": data.standard_deviations,
+                        })
+                        if df is None:
+                            continue
+                        
+                        if result is None:
+                            result = df
+                            continue
+                        
+                        result = pd.merge(result, df, how="outer", on=["start_time", "end_time", "station", "latitude", "longitude", "altitude", "flag"], suffixes=("", f"_{i}"))
 
-                print(df)
+    result.to_csv("output.csv")
+    print(result)
         #       start_time            end_time   latitude  longitude  altitude  station  flag      value  stdev
         #0  2017-11-30 2017-11-30 23:58:59  47.766666  16.766666     117.0  AT0002R     0   3.400000    NaN
         #1  2017-12-03 2017-12-03 23:58:59  47.766666  16.766666     117.0  AT0002R     0   4.390000    NaN
