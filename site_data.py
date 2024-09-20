@@ -1,8 +1,6 @@
 import pprint
-import requests
-import json
-import sqlite3
 import logging
+from utils import fetch_json, station_code_lookup_table
 
 logger = logging.getLogger(__name__)
 
@@ -15,80 +13,6 @@ USE_AEROVAL_TEST = True
 
 # User namespace on aeroval-test
 DATAPATH = "davids"  # Data Path value used only for aeroval-test.
-
-HTTP_OK = 200
-
-EBAS_FILE_INDEX_PATH = "/lustre/storeB/project/aerocom/aerocom1/AEROCOM_OBSDATA/EBASMultiColumn/data/ebas_file_index.sqlite3"
-
-
-def build_station_code_lookup_table() -> dict[str, str]:
-    """Aeroval currently does not include station code (and other metadata) as part of
-    the data provided, so this reads the station names and IDs from the EBAS file index
-    and attempts to create a lookup table that maps a station name to its metadata.
-
-    The following metadata is included as of writing this documentation:
-        station_code
-        platform_code
-        station_name
-        station_wdca_id
-        station_gaw_name
-        station_gaw_id
-        station_airs_id
-        station_other_ids
-        station_state_code
-        station_landuse
-        station_setting
-        station_gaw_type
-        station_wmo_region
-        station_latitude
-        station_longitude
-        station_altitude
-    """
-    con = sqlite3.connect(EBAS_FILE_INDEX_PATH)
-    con.row_factory = sqlite3.Row
-    cur = con.cursor()
-
-    cur.execute(
-        """
-        SELECT * FROM station         
-        """
-    )
-    rows = cur.fetchall()
-    lookup = {}
-    for row in rows:
-        name = row["station_name"].strip()
-        if name in rows:
-            raise Exception(
-                "Duplicate station name. Reverse lookup of station name not possible."
-            )
-
-        lookup[name] = {k: v for k, v in dict(row).items()}
-
-    return lookup
-
-
-station_code_lookup_table = build_station_code_lookup_table()
-
-
-def fetch_json(path: str) -> dict:
-    """
-    Helper function to fetch and parse json from some path on api.aeroval[-test].met.no.
-    """
-    if USE_AEROVAL_TEST:
-        url = f"https://api.aeroval-test.met.no/api/0.2.1{path}?data_path={DATAPATH}"
-    else:
-        url = f"https://api.aeroval.met.no/api/0.2.1{path}"
-
-    logger.info(f"Fetching data from '{url}'")
-    r = requests.get(url)
-    if r.status_code == HTTP_OK:
-        return json.loads(r.content)
-    else:
-        logger.error(
-            f"Fetching data from '{url}' failed with status code {r.status_code}"
-        )
-        return None
-
 
 time_config = {
     "year": "2022",
@@ -112,7 +36,7 @@ def get_site_data(
     stats = time_config["stats"]
 
     map_data = fetch_json(
-        f"/map/{PROJECT}/{EXPERIMENT}/{obsnetwork}/{varname}/{layer}/{model}/{varname}/{year}"
+        f"/map/{PROJECT}/{EXPERIMENT}/{obsnetwork}/{varname}/{layer}/{model}/{varname}/{year}", aeroval_test=USE_AEROVAL_TEST, user_name_space=DATAPATH
     )
     result = {}
     for md in map_data:
@@ -147,8 +71,6 @@ def get_site_data(
     return result
 
 if __name__ == "__main__":
-
-
     sites = get_site_data("concNno", "EBAS-m", "v5.3", "Surface", time_config)
 
     # Show full record for the first entry:

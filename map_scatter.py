@@ -1,9 +1,7 @@
-import requests
-import json
 import logging
 import pprint
 import datetime
-
+from utils import fetch_json
 
 logger = logging.getLogger(__name__)
 
@@ -16,26 +14,6 @@ USE_AEROVAL_TEST = True
 # User namespace on aeroval-test
 DATAPATH = "davids"  # Data Path value used only for aeroval-test.
 
-HTTP_OK = 200
-
-def fetch_json(path: str) -> dict:
-    """
-    Helper function to fetch and parse json from some path on api.aeroval[-test].met.no.
-    """
-    if USE_AEROVAL_TEST:
-        url = f"https://api.aeroval-test.met.no/api/0.2.1{path}?data_path={DATAPATH}"
-    else:
-        url = f"https://api.aeroval.met.no/api/0.2.1{path}"
-
-    logger.info(f"Fetching data from '{url}'")
-    r = requests.get(url)
-    if r.status_code == HTTP_OK:
-        return json.loads(r.content)
-    else:
-        logger.error(
-            f"Fetching data from '{url}' failed with status code {r.status_code}"
-        )
-        return None
 class FetchHelper():
     def __init__(self, project: str, experiment: str):
         self._project = project
@@ -53,7 +31,7 @@ class FetchHelper():
         Returns ts plot data as shown on Aeroval for the provided arguments.
         """
         scatter = fetch_json(
-            f"/ts/{self._project}/{self._experiment}/{region}/{obsnetwork}/{varname}/{layer}"
+            f"/ts/{self._project}/{self._experiment}/{region}/{obsnetwork}/{varname}/{layer}", aeroval_test=USE_AEROVAL_TEST, user_name_space=DATAPATH
         )
 
         new = {
@@ -102,7 +80,7 @@ class FetchHelper():
         - statistics - The subset of statistics values that matches period,season,statisics constraints.
         """
         map_data = fetch_json(
-            f"/map/{self._project}/{self._experiment}/{obsnetwork}/{varname}/{layer}/{model}/{varname}/{period}"
+            f"/map/{self._project}/{self._experiment}/{obsnetwork}/{varname}/{layer}/{model}/{varname}/{period}", aeroval_test=USE_AEROVAL_TEST, user_name_space=DATAPATH
         )
 
         result = []
@@ -140,7 +118,7 @@ class FetchHelper():
         of the correlation statistics and the timeseries data which is returned as a dict of the form {"stats": ..., "ts": ...}
         """
         scat = fetch_json(
-            f"/regional_statistics/{self._project}/{self._experiment}/{frequency}/{varname}/{obsnetwork}/{layer}"
+            f"/regional_statistics/{self._project}/{self._experiment}/{frequency}/{varname}/{obsnetwork}/{layer}", aeroval_test=USE_AEROVAL_TEST, user_name_space=DATAPATH
         )
 
         return {

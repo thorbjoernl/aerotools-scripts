@@ -1,7 +1,6 @@
-import json
 import pprint
 import logging
-import requests
+from utils import fetch_json
 
 logger = logging.getLogger(__name__)
 
@@ -14,35 +13,13 @@ USE_AEROVAL_TEST = True
 # User namespace on aeroval-test
 DATAPATH = "davids"  # Data Path value used only for aeroval-test.
 
-HTTP_OK = 200
-
-
-def fetch_json(path: str) -> dict:
-    """
-    Helper function to fetch and parse json from some path on api.aeroval[-test].met.no.
-    """
-    if USE_AEROVAL_TEST:
-        url = f"https://api.aeroval-test.met.no/api/0.2.1{path}?data_path={DATAPATH}"
-    else:
-        url = f"https://api.aeroval.met.no/api/0.2.1{path}"
-
-    logger.info(f"Fetching data from '{url}'")
-    r = requests.get(url)
-    if r.status_code == HTTP_OK:
-        return json.loads(r.content)
-    else:
-        logger.error(
-            f"Fetching data from '{url}' failed with status code {r.status_code}"
-        )
-        return None
-
 
 def process_menu(project: str, experiment: str) -> dict:
     """
     Returns details about varnames, obsnetworks and models parsed from
     the menu file for an experiment as a dict.
     """
-    menu = fetch_json(f"/menu/{project}/{experiment}")
+    menu = fetch_json(f"/menu/{project}/{experiment}", aeroval_test=USE_AEROVAL_TEST, user_name_space=DATAPATH)
 
     var_names = list(menu)
     obs_networks = list(menu[var_names[0]]["obs"])
@@ -53,7 +30,7 @@ def process_menu(project: str, experiment: str) -> dict:
 def fetch_heatmap(
     project: str, experiment: str, frequency: str, region: str, period: str
 ) -> dict:
-    return fetch_json(f"/heatmap/{project}/{experiment}/{frequency}/{region}/{period}")
+    return fetch_json(f"/heatmap/{project}/{experiment}/{frequency}/{region}/{period}", aeroval_test=USE_AEROVAL_TEST, user_name_space=DATAPATH)
 
 
 def filter_heatmap(
