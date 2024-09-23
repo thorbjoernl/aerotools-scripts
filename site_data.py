@@ -4,6 +4,11 @@ from utils import fetch_json, station_code_lookup_table
 
 logger = logging.getLogger(__name__)
 
+# Used as tolerance for comparing api provided tolerances and ebas file 
+# index provided tolerances. Differences above this value will cause a
+# warning.
+COORD_TOLERANCE = 0.0001
+
 PROJECT = "rv5_series"
 EXPERIMENT = "DSemep"
 
@@ -56,13 +61,13 @@ def get_site_data(
 
         # Aeroval API returns lat, lon. Compare and warn if they differ as an
         # additional sanity check to catch mistakes.
-        if not md["latitude"] == extracted_data["station_latitude"]:
+        if abs(md["latitude"] - extracted_data["station_latitude"]) > COORD_TOLERANCE:
             logger.warning(
                 f"Ebas index latitude ({md['latitude']:.5f}) does not match api provided latitude ({extracted_data['station_latitude']:.5f})."
             )
-        if not md["longitude"] == extracted_data["station_longitude"]:
+        if abs(md["longitude"] - extracted_data["station_longitude"]) > COORD_TOLERANCE:
             logger.warning(
-                f"Ebas index longitude ({md['longitude']:.5f}) does not match api provided longitude ({extracted_data['longitude']:.5f})."
+                f"Ebas index longitude ({md['longitude']:.5f}) does not match api provided longitude ({extracted_data['station_longitude']:.5f})."
             )
 
         # Append result
