@@ -130,3 +130,65 @@ if __name__ == "__main__":
     print(data)
 
     # Example output:
+    # 206 files found
+    # ...
+    #     - AT0002R.20080101080000.20110303000000.wet_only_sampler..precip.1y.1d.AT01L_wados_02..lev2.nas
+    #   - sulphate_corrected (mg S/l)
+    #   - sulphate_corrected (mg/l)
+    #   - sulphate_total (mg S/l)
+    #   - sulphate_total (mg/l)
+    # - AT0002R.20090101080000.20110303000000.wet_only_sampler..precip.1y.1d.AT01L_wados_02..lev2.nas
+    #   - sulphate_corrected (mg S/l)
+    #   - sulphate_corrected (mg/l)
+    #   - sulphate_total (mg S/l)
+    #   - sulphate_total (mg/l)
+    # - AT0002R.20090101080000.20110303000000.wet_only_sampler..precip.1y.1d.AT01L_wados_02..lev2.nas
+    #   - sulphate_corrected (mg S/l)
+    #   - sulphate_corrected (mg/l)
+    #   - sulphate_total (mg S/l)
+    #   - sulphate_total (mg/l)
+    # - AT0002R.20100101000000.20140227000000.filter_3pack..aerosol.1y.1d.AT01L_f3p_02..lev2.nas
+    #   - sulphate_total (ug S/m3)
+    #   - sulphate_total (ug/m3)
+    # - AT0002R.20100101000000.20140227000000.filter_3pack..aerosol.1y.1d.AT01L_f3p_02..lev2.nas
+    #   - sulphate_total (ug S/m3)
+    #   - sulphate_total (ug/m3)
+    # - AT0002R.20110101000000.20140227000000.filter_3pack..aerosol.6d.1d.AT01L_f3p_02..lev2.nas
+    #   - sulphate_total (ug S/m3)
+    #   - sulphate_total (ug/m3)
+    # - AT0002R.20110101000000.20140227000000.filter_3pack..aerosol.6d.1d.AT01L_f3p_02..lev2.nas
+    #   - sulphate_total (ug S/m3)
+    #   - sulphate_total (ug/m3)
+    # - AT0002R.20220712000000.20240530000000.high_vol_sampler..pm25.10d.1d.AT03L_hvs_at0002.FR18L_tracers_IMP2022.lev2.nas
+    #   - sulphate_total (ug S/m3)
+    #   - sulphate_total (ug/m3)
+    # - AT0002R.20220712000000.20240530000000.high_vol_sampler..pm25.10d.1d.AT03L_hvs_at0002.FR18L_tracers_IMP2022.lev2.nas
+    #   - sulphate_total (ug S/m3)
+    #   - sulphate_total (ug/m3)
+    #Using variable name 'precip#sulphate_corrected#mg S/l'
+    #Using variable name 'precip#sulphate_corrected#mg/l'
+    #Using variable name 'precip#sulphate_total#mg S/l'
+    #Using variable name 'precip#sulphate_total#mg/l'
+    #Column names: Index(['start_time', 'end_time', 'latitude', 'longitude', 'altitude',
+    #       'station', 'flag', 'value_precip#sulphate_corrected#mg S/l',
+    #       'stdev_precip#sulphate_corrected#mg S/l',
+    #       'value_precip#sulphate_corrected#mg/l',
+    #       'stdev_precip#sulphate_corrected#mg/l',
+    #       'value_precip#sulphate_total#mg S/l',
+    #       'stdev_precip#sulphate_total#mg S/l',
+    #       'value_precip#sulphate_total#mg/l', 'stdev_precip#sulphate_total#mg/l'],
+    #      dtype='object')
+    #             start_time            end_time  ...  value_precip#sulphate_total#mg/l  stdev_precip#sulphate_total#mg/l
+    #0   1987-01-01 07:00:00 1987-01-02 07:00:00  ...                               1.9                               NaN
+    #1   1987-01-02 07:00:00 1987-01-03 07:00:00  ...                               NaN                               NaN
+    #2   1987-01-03 07:00:00 1987-01-04 07:00:00  ...                               NaN                               NaN
+    #3   1987-01-04 07:00:00 1987-01-05 07:00:00  ...                               NaN                               NaN
+    #4   1987-01-05 07:00:00 1987-01-06 07:00:00  ...                               NaN                               NaN
+    #..                  ...                 ...  ...                               ...                               ...
+    #360 1987-12-27 07:00:00 1987-12-28 07:00:00  ...                               NaN                               NaN
+    #361 1987-12-28 07:00:00 1987-12-29 07:00:00  ...                               4.2                               NaN
+    #362 1987-12-29 07:00:00 1987-12-30 07:00:00  ...                               NaN                               NaN
+    #363 1987-12-30 07:00:00 1987-12-31 07:00:00  ...                               NaN                               NaN
+    #364 1987-12-31 07:00:00 1988-01-01 07:00:00  ...                               NaN                               NaN
+    #
+    #[365 rows x 15 columns]
