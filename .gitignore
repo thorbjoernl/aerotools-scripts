@@ -162,3 +162,5 @@ cython_debug/
 #.idea/
 
 cache.txt
+.vscode/
+logs/

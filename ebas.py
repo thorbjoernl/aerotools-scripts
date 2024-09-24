@@ -2,8 +2,8 @@ import pyaro
 import pandas as pd
 import pyaro.timeseries
 import pathlib
-import re
 import logging
+import sqlite3
 from pyaerocom.io.ebas_varinfo import EbasVarInfo
 from pyaerocom import const
 
@@ -11,14 +11,9 @@ logger = logging.getLogger(__name__)
 
 vars = const.VARS
 
+EBAS_FILE_INDEX = pathlib.Path("/lustre/storeB/project/aerocom/aerocom1/AEROCOM_OBSDATA/EBASMultiColumn/data/ebas_file_index.sqlite3")
 FOLDER_TO_READ = pathlib.Path("/lustre/storeB/project/aerocom/aerocom1/AEROCOM_OBSDATA/EBASMultiColumn/data/data")
 
-#for v in vars:
-#    try:
-#        if len(EbasVarInfo(v.var_name)["component"]) > 1:
-#            print(v.var_name, EbasVarInfo(v.var_name)["component"]) 
-#    except Exception:
-#        pass
 
 def ebas_components_for_aerocom_variable(aerocom_variable: str):
     return EbasVarInfo(aerocom_variable)["component"]
@@ -27,37 +22,44 @@ def ebas_components_for_aerocom_variable(aerocom_variable: str):
 VAR_NAME = 'concso4'
 SITE = 'AT0002R'
 
-pattern = re.compile(f"/{SITE}\.")
+con = sqlite3.connect(str(EBAS_FILE_INDEX))
+cur = con.cursor()
 
-if __name__ == "__main__":
+all = []
+
+for comp in ebas_components_for_aerocom_variable(VAR_NAME):
+    cur.execute(
+        """
+        SELECT station_code,comp_name,unit, filename FROM variable
+        WHERE
+            station_code = ? AND comp_name = ?
+        """,
+        (SITE, comp)
+    )
+    all.extend(cur.fetchall())
+
+def read_ebas_data(file_name: str) -> pd.DataFrame:
+    """
+    Reads data from a single ebas .nas file providing it as a pandas data frame.
+    The resulting column will contain data for separate components as two colums
+    (one for the values and one for the standard deviations named 'value_{ebas_var}'
+    and 'stdev_{ebas_var}'). ebas_var is the component name used by pyaro which is
+    '{matrix}#{comp_name}#{unit}' (eg. 'precip#precipitation_amount#mm').
+    """
     engines = pyaro.list_timeseries_engines()
-    result = None
-    ebas_var = None
     df = None
-    # ebas_var = 'pm25#total_carbon#ug C m-3'
-    files = list(FOLDER_TO_READ.iterdir())
-    for i, f in enumerate(files, start=1):
-        print(f"[{i}/{len(files)}] - {f}")
-        if not (SITE in str(f)):
-            # Using the pyaro stations filter requires reading all the data before filtering.
-            # Applying this extra filter step to prevent unneccessary filter step (since files
-            # include station id in their file name)
-            #print(f"Skipping file '{f}' due to not including site id in filename.")
-            continue
+    with engines["nilupmfebas"].open(file_name,
+        filters=[pyaro.timeseries.filters.get("stations", include=[SITE])]) as ts:
 
-        print(f"Processing file '{f}'...")
+        ebas_var = None
+        for x in ebas_components_for_aerocom_variable(VAR_NAME):
+            for y in ts.variables():
+                if f"#{x}#" in y:
+                    print(f"Using variable name '{y}'")
+                    ebas_var = y
 
-        with engines["nilupmfebas"].open(f,
-                filters=[pyaro.timeseries.filters.get("stations", include=[SITE])]) as ts:
-            
-            
-            for x in ebas_components_for_aerocom_variable(VAR_NAME):
-                for y in ts.variables():
-                    if f"#{x}#" in y:
-                        print(f"Using variable name '{y}'")
-                        ebas_var = y
-
-                        data: pyaro.timeseries.NpStructuredData = ts.data(ebas_var)
+                    data: pyaro.timeseries.NpStructuredData = ts.data(ebas_var)
+                    if df is None:
                         df = pd.DataFrame({
                             "start_time": data.start_times,
                             "end_time": data.end_times,
@@ -69,48 +71,62 @@ if __name__ == "__main__":
                             f"value_{ebas_var}": data.values,
                             f"stdev_{ebas_var}": data.standard_deviations,
                         })
-                        if df is None:
-                            continue
-                        
-                        if result is None:
-                            result = df
-                            continue
-                        
-                        result = pd.merge(result, df, how="outer", on=["start_time", "end_time", "station", "latitude", "longitude", "altitude", "flag"], suffixes=("", f"_{i}"))
+                    else:
+                        df[f"value_{ebas_var}"] = data.values
+                        df[f"stdev_{ebas_var}"] = data.standard_deviations
 
-    result.to_csv("output.csv")
-    print(result)
-        #       start_time            end_time   latitude  longitude  altitude  station  flag      value  stdev
-        #0  2017-11-30 2017-11-30 23:58:59  47.766666  16.766666     117.0  AT0002R     0   3.400000    NaN
-        #1  2017-12-03 2017-12-03 23:58:59  47.766666  16.766666     117.0  AT0002R     0   4.390000    NaN
-        #2  2017-12-06 2017-12-06 23:58:59  47.766666  16.766666     117.0  AT0002R     0   3.870000    NaN
-        #3  2017-12-09 2017-12-09 23:58:59  47.766666  16.766666     117.0  AT0002R     0   1.450000    NaN
-        #4  2017-12-12 2017-12-12 23:58:59  47.766666  16.766666     117.0  AT0002R     0   1.430000    NaN
-        #5  2017-12-15 2017-12-15 23:58:59  47.766666  16.766666     117.0  AT0002R     0   6.370000    NaN
-        #6  2017-12-18 2017-12-18 23:58:59  47.766666  16.766666     117.0  AT0002R     0   2.610000    NaN
-        #7  2017-12-21 2017-12-21 23:58:59  47.766666  16.766666     117.0  AT0002R     0   3.830000    NaN
-        #8  2017-12-24 2017-12-24 23:58:59  47.766666  16.766666     117.0  AT0002R     0   2.640000    NaN
-        #9  2017-12-27 2017-12-27 23:58:59  47.766666  16.766666     117.0  AT0002R     0   3.490000    NaN
-        #10 2018-01-02 2018-01-02 23:58:59  47.766666  16.766666     117.0  AT0002R     0   4.000000    NaN
-        #11 2018-01-05 2018-01-05 23:58:59  47.766666  16.766666     117.0  AT0002R     0   7.730000    NaN
-        #12 2018-01-08 2018-01-08 23:58:59  47.766666  16.766666     117.0  AT0002R     0   4.600000    NaN
-        #13 2018-01-11 2018-01-11 23:58:59  47.766666  16.766666     117.0  AT0002R     0   3.490000    NaN
-        #14 2018-01-14 2018-01-14 23:58:59  47.766666  16.766666     117.0  AT0002R     0   3.750000    NaN
-        #15 2018-01-17 2018-01-17 23:58:59  47.766666  16.766666     117.0  AT0002R     0   2.000000    NaN
-        #16 2018-01-20 2018-01-20 23:58:59  47.766666  16.766666     117.0  AT0002R     0   3.700000    NaN
-        #17 2018-01-29 2018-01-29 23:58:59  47.766666  16.766666     117.0  AT0002R     0   6.990000    NaN
-        #18 2018-02-01 2018-02-01 23:58:59  47.766666  16.766666     117.0  AT0002R     0   5.340000    NaN
-        #19 2018-02-04 2018-02-04 23:58:59  47.766666  16.766666     117.0  AT0002R     0   2.620000    NaN
-        #20 2018-02-07 2018-02-07 23:58:59  47.766666  16.766666     117.0  AT0002R     0   5.230000    NaN
-        #21 2018-02-10 2018-02-10 23:58:59  47.766666  16.766666     117.0  AT0002R     0   6.230000    NaN
-        #22 2018-02-13 2018-02-13 23:58:59  47.766666  16.766666     117.0  AT0002R     0   2.550000    NaN
-        #23 2018-02-16 2018-02-16 23:58:59  47.766666  16.766666     117.0  AT0002R     0   8.220000    NaN
-        #24 2018-02-19 2018-02-19 23:58:59  47.766666  16.766666     117.0  AT0002R     0        NaN    NaN
-        #25 2018-02-22 2018-02-22 23:58:59  47.766666  16.766666     117.0  AT0002R     0        NaN    NaN
-        #26 2018-02-25 2018-02-25 23:58:59  47.766666  16.766666     117.0  AT0002R     0   7.090000    NaN
-        #27 2018-02-28 2018-02-28 23:58:59  47.766666  16.766666     117.0  AT0002R     0        NaN    NaN
-        #28 2018-03-03 2018-03-03 23:58:59  47.766666  16.766666     117.0  AT0002R     0  17.110001    NaN
-        #29 2018-03-06 2018-03-06 23:58:59  47.766666  16.766666     117.0  AT0002R     0  10.820000    NaN
-        #30 2018-03-09 2018-03-09 23:58:59  47.766666  16.766666     117.0  AT0002R     0   5.670000    NaN
-        #31 2018-03-12 2018-03-12 23:58:59  47.766666  16.766666     117.0  AT0002R     0   2.140000    NaN
-        #
+    return df 
+
+def get_component_info(file_names: list[str], aerocom_var: str | None = None):
+    """
+    Returns a dictionary of information about components provided by
+    ebas files. The dictionary has a single entry per file path with a sub dict
+    containing a list of pairwise comp_names and units.
+
+    If aerocom_var is set, only components that apply to that aerocom variable
+    name will be listed.
+
+    """
+    con = sqlite3.connect(str(EBAS_FILE_INDEX))
+    cur = con.cursor()
+
+    files = set(file_names)
+    result = {}
+    cur.execute(
+        """
+        SELECT comp_name,unit,filename FROM variable
+        """
+    )
+
+    for x in cur.fetchall():
+        if x[2] in files:
+            if x[2] not in result:
+                result[x[2]] = {}
+            if "component" not in result[x[2]]:
+                result[x[2]]["component"] = []
+            if "unit" not in result[x[2]]:
+                result[x[2]]["unit"] = []
+
+            if x[0] in ebas_components_for_aerocom_variable(aerocom_var) or aerocom_var is None:
+                result[x[2]]["component"].append(x[0])
+                result[x[2]]["unit"].append(x[1])
+
+    return result
+
+if __name__ == "__main__":
+    print (f"{len(all)} files found")
+
+    # Print available files and components for the selected station
+    # and aerocom variable name.
+    info = get_component_info([x[3] for x in all], VAR_NAME)
+    for f in all:
+        print (f" - {f[3]}")
+        for c, u in zip(info[f[3]]["component"], info[f[3]]["unit"]):
+            print (f"   - {c} ({u})")
+
+    # Example access of data for a file
+    data = read_ebas_data(f"{FOLDER_TO_READ}/AT0002R.19870101070000.20110303000000.wet_only_sampler..precip.1y.1d.AT01L_wados_02.AT01L_IC_a.lev2.nas")
+    print(f"Column names: {data.columns}")
+    print(data)
+
+    # Example output:
