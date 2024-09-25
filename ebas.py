@@ -1,3 +1,4 @@
+import datetime
 import pyaro
 import pandas as pd
 import pyaro.timeseries
@@ -126,6 +127,25 @@ def get_component_info(file_names: list[str], aerocom_var: str | None = None):
 
     return result
 
+def get_most_recent_file(files: list[str]) -> tuple[str, str]:
+    """
+    For a list of ebas files, returns the file with the most recent revision string.
+    """
+    rev, file = None, None
+    engines = pyaro.list_timeseries_engines()
+    for f in files:
+        with engines["nilupmfebas"].open(
+            f, filters=[pyaro.timeseries.filters.get("stations", include=[SITE])]
+        ) as ts:
+            revision = datetime.datetime.strptime(ts.metadata()["revision"], "%y%m%d%H%M%S")
+
+            if rev is None or rev < revision:
+                rev = revision
+                file = f
+    
+    return rev, file
+
+
 
 if __name__ == "__main__":
     print(f"{len(all)} files found")
@@ -137,6 +157,10 @@ if __name__ == "__main__":
         print(f" - {f[3]}")
         for c, u in zip(info[f[3]]["component"], info[f[3]]["unit"]):
             print(f"   - {c} ({u})")
+
+    # Print the revision date and file of the most recent file.
+    rev, file = get_most_recent_file([f"{FOLDER_TO_READ}/{f[3]}" for f in all])
+    print(f"Most recent file: '{file}' ({rev})")
 
     # Example access of data for a file
     data = read_ebas_data(
