@@ -8,8 +8,7 @@ def to_dataframe(ungridded: pya.ungriddeddata.UngriddedData) -> pd.DataFrame:
     Produces a dataframe from a pyaerocom ungridded data object.
     """
     df = pd.DataFrame()
-    # TODO: Find out how to prefilter this because this is pretty slow and memory intensive
-    
+   
     # Spatio-temporal information
     df["time"] = ungridded._data[:, ungridded._TIMEINDEX].astype("datetime64[s]")
     df["var_name"] = [list(ungridded.metadata[x]["var_info"].values())[0]["var_name"] for x in ungridded._data[:, ungridded._METADATAKEYINDEX]]
@@ -71,5 +70,4 @@ if __name__ == "__main__":
     #df = df[df["station_name"] == "Amberd"]
 
     print(df)
-
-    # EMEP-nettverk / EEA
+    
