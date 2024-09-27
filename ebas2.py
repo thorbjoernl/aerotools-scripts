@@ -50,7 +50,6 @@ if __name__ == "__main__":
     data = data.filter_by_meta(ts_type = "hourly", station_id = "AM0001R")
 
     df = to_dataframe(data)
-    print(df)
 
     # Filter for specific years.
     # Keep in mind that filtering occurs based on mid-sample time, so a sample for 23:00-00:00 will be
@@ -70,4 +69,3 @@ if __name__ == "__main__":
     #df = df[df["station_name"] == "Amberd"]
 
     print(df)
-    
