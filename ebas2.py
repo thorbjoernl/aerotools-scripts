@@ -20,8 +20,12 @@ def to_dataframe(ungridded: pya.ungriddeddata.UngriddedData) -> pd.DataFrame:
     # Actual data values.
     df["value"] = ungridded._data[:, ungridded._DATAINDEX]
     # Currently I assume there is only one value in varinfo. Not sure if this assumption breaks in some cases.
+    df["matrix"] = [";".join(list(ungridded.metadata[x]["var_info"].values())[0]["matrix"]) for x in ungridded._data[:, ungridded._METADATAKEYINDEX]]
+    df["component"] = [";".join(list(ungridded.metadata[x]["var_info"].values())[0]["component"]) for x in ungridded._data[:, ungridded._METADATAKEYINDEX]]
     df["unit"] = [list(ungridded.metadata[x]["var_info"].values())[0]["units"] for x in ungridded._data[:, ungridded._METADATAKEYINDEX]]
-    
+    # var_info takes the following form:
+    # {'name': 'ozone', 'units': 'nmol mol-1', 'matrix': ['air'], 'statistics': None, 'ts_type': 'hourly', 'converted_from_units': 'ug/m3', 'units_conv_fac': 0.49260573482126196, 'computed': True, 'var_name': 'vmro3max', 'component': ['ozone'], 'instrument': None, 'requires': None, 'scale_factor': 1}
+
     # Add metadata.
     df["station_id"] = [ungridded.metadata[x]["station_id"] for x in ungridded._data[:, ungridded._METADATAKEYINDEX]]
     df["station_name"] = [ungridded.metadata[x]["station_name"] for x in ungridded._data[:, ungridded._METADATAKEYINDEX]]
@@ -42,13 +46,16 @@ if __name__ == "__main__":
 
     data = obs_reader.read(vars_to_retrieve=VAR)
     
+    # Filtering for station here is more time and memory efficient.
+    # Can filter on any value in the metadata dict (See previous comment)
+    data = data.filter_by_meta(ts_type = "hourly", station_id = "AM0001R")
+
     df = to_dataframe(data)
-
-
-    # Don't think this is necessary but ensure ts_type is consistent.
-    df = df[df["ts_type"] == "hourly"]
+    print(df)
 
     # Filter for specific years.
+    # Keep in mind that filtering occurs based on mid-sample time, so a sample for 23:00-00:00 will be
+    # filtered based on ~23:30 timestamp.
     df = df[df["time"].dt.year.isin([2010, 2011])]
 
     # Filter for date range.
@@ -64,3 +71,5 @@ if __name__ == "__main__":
     #df = df[df["station_name"] == "Amberd"]
 
     print(df)
+
+    # EMEP-nettverk / EEA
