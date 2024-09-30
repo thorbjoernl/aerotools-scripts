@@ -120,6 +120,9 @@ if __name__ == "__main__":
         available_stations = get_station_names(
             PROJECT, exp, OBSNETWORK, VARNAME, LAYER, MODEL, PERIOD
         )
+        # "ALL" is treated as a special case 'station' but isn't found using the above function
+        # append it to include it.
+        available_stations.append("ALL")
         if available_stations:
             ts_data[exp] = {}
         for station in available_stations:
@@ -129,6 +132,8 @@ if __name__ == "__main__":
 
 
     pprint.pprint(ts_data["DSemep"]["Ulborg"])
+
+    pprint.pprint(ts_data["DSemep"]["ALL"])
 
 # > python 03-ts-all-experiments.py
 # ...
