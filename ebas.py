@@ -23,21 +23,14 @@ FOLDER_TO_READ = pathlib.Path(
 def ebas_components_for_aerocom_variable(aerocom_variable: str):
     return EbasVarInfo(aerocom_variable)["component"]
 
-
-def get_datasets(
-    var_name: str,
-    sites: list[str] | str,
-    matrix: str,
-    start_time: datetime.datetime,
-    end_time: datetime.datetime,
-):
+def get_datasets(var_name: str, sites: list[str] | str, matrix: str, statistics: str, start_time: datetime.datetime, end_time: datetime.datetime):
     if isinstance(sites, str):
         sites = [sites]
     con = sqlite3.connect(str(EBAS_FILE_INDEX))
     con.row_factory = sqlite3.Row
 
     cur = con.cursor()
-
+    
     comps = ebas_components_for_aerocom_variable(var_name)
 
     cur.execute(
@@ -50,15 +43,15 @@ def get_datasets(
             station_code IN ({",".join('?'*len(sites))})
             AND comp_name IN ({",".join('?'*len(comps))}) 
             AND matrix = ?
+            AND statistics = ?
             AND first_start >= ?
             AND last_end <= ?
         GROUP BY
             filename
         """,
-        (*sites, *comps, matrix, start_time, end_time),
+        (*sites, *comps, matrix, statistics, start_time, end_time),
     )
     return cur.fetchall()
-
 
 def read_ebas_data(file_name: str) -> pd.DataFrame:
     """
@@ -71,11 +64,8 @@ def read_ebas_data(file_name: str) -> pd.DataFrame:
     engines = pyaro.list_timeseries_engines()
     df = None
     with engines["nilupmfebas"].open(
-        file_name,
-        filters=[pyaro.timeseries.filters.get("stations", include=tuple(SITES))],
+        file_name, filters=[pyaro.timeseries.filters.get("stations", include=tuple(SITES))]
     ) as ts:
-
-        ebas_var = None
         for x in ebas_components_for_aerocom_variable(VAR_NAME):
             for y in ts.variables():
                 if f"{MATRIX}#{x}#" in y:
@@ -103,19 +93,56 @@ def read_ebas_data(file_name: str) -> pd.DataFrame:
 
     return df
 
-
 if __name__ == "__main__":
-    VAR_NAME = "concso4"
+    VAR_NAME = "concso4" # https://github.com/metno/pyaerocom/blob/main-dev/pyaerocom/data/variables.ini
+
     SITES = ["AT0002R", "NO0001R"]
+
     MATRIX = "aerosol"
+    # Other possible MATRIX values are:
+    # - precip
+    # - aerosol
+    # - air
+    # - air+aerosol
+    # - pm10
+    # - pm25
+    # - instrument
+    # - pm1
+    # - precip_tot
+    # - pm10_pm25
+    # - met
+    # - pm1_non_refractory
+    # - wetdep
+    # - pm10_pm1
+    # - precip+dry_dep
+    # - pm10_non_volatile
+    # - pm10_volatile
+    # - pm25_volatile
+    # - pm25_non_volatile
+    # - pm25_non_refractory
+    STATISTICS = "arithmetic mean"
+    # Other possible STATISTICS values are:
+    # - 'arithmetic mean'
+    # - 'stddev'
+    # - 'maximum'
+    # - 'minimum'
+    # - 'percentile:15.87'
+    # - 'percentile:84.13'
+    # - 'expanded uncertainty 2sigma'
+    # - 'precision'
+    # - 'median'
+    # - 'sample count'
+    # - 'uncertainty'
+    # - 'detection limit'
+    # - 'accuracy'
     START_TIME = datetime.datetime(2010, 1, 1, 0, 0, 0)
     END_TIME = datetime.datetime(2011, 12, 31, 23, 59, 59)
 
-    files = get_datasets(VAR_NAME, SITES, MATRIX, START_TIME, END_TIME)
+    files = get_datasets(VAR_NAME, SITES, MATRIX, STATISTICS, START_TIME, END_TIME)
 
-    print(f"{len(files)} files found")
+    print(f"{len(files)} matching files found")
 
-    # Example access of data for a file
+    # Read found files and store them as dataframes in dict.
     data = {}
     for f in [f"{FOLDER_TO_READ}/{x['filename']}" for x in files]:
         print(f"Reading file '{f}'...")
