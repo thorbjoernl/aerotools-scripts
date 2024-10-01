@@ -53,7 +53,7 @@ def get_datasets(var_name: str, sites: list[str] | str, matrix: str, statistics:
     )
     return cur.fetchall()
 
-def read_ebas_data(file_name: str) -> pd.DataFrame:
+def read_ebas_data(file_name: str) -> pd.DataFrame | None:
     """
     Reads data from a single ebas .nas file providing it as a pandas data frame.
     The resulting column will contain data for separate components as two colums
@@ -66,31 +66,32 @@ def read_ebas_data(file_name: str) -> pd.DataFrame:
     with engines["nilupmfebas"].open(
         file_name, filters=[pyaro.timeseries.filters.get("stations", include=tuple(SITES))]
     ) as ts:
+        df = None
         for x in ebas_components_for_aerocom_variable(VAR_NAME):
             for y in ts.variables():
                 if f"{MATRIX}#{x}#" in y:
-                    print(f"Using variable name '{y}'")
                     ebas_var = y
 
                     data: pyaro.timeseries.NpStructuredData = ts.data(ebas_var)
+                    new = pd.DataFrame(
+                        {
+                            "start_time": data.start_times,
+                            "end_time": data.end_times,
+                            "latitude": data.latitudes,
+                            "longitude": data.longitudes,
+                            "altitude": data.altitudes,
+                            "station": data.stations,
+                            "flag": data.flags,
+                            f"value_{ebas_var}": data.values,
+                            f"stdev_{ebas_var}": data.standard_deviations,
+                        }
+                    )
                     if df is None:
-                        df = pd.DataFrame(
-                            {
-                                "start_time": data.start_times,
-                                "end_time": data.end_times,
-                                "latitude": data.latitudes,
-                                "longitude": data.longitudes,
-                                "altitude": data.altitudes,
-                                "station": data.stations,
-                                "flag": data.flags,
-                                f"value_{ebas_var}": data.values,
-                                f"stdev_{ebas_var}": data.standard_deviations,
-                            }
-                        )
+                        df = new
                     else:
-                        df[f"value_{ebas_var}"] = data.values
-                        df[f"stdev_{ebas_var}"] = data.standard_deviations
-
+                        df = df.merge(new, on = ("start_time", "end_time", "latitude", "longitude", "altitude", "station", "flag"), how="outer")
+    if df is not None:
+        df = df.sort_values("start_time")
     return df
 
 if __name__ == "__main__":
@@ -146,7 +147,9 @@ if __name__ == "__main__":
     data = {}
     for f in [f"{FOLDER_TO_READ}/{x['filename']}" for x in files]:
         print(f"Reading file '{f}'...")
-        data[f] = read_ebas_data(f)
+        df = read_ebas_data(f)
+        if df is not None:
+            data[f] = df
 
     # data is now a dictionary mapping from the source file_path to the corresponding loaded data
     # frame.
