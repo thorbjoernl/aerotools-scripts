@@ -14,12 +14,14 @@ USE_AEROVAL_TEST = True
 # User namespace on aeroval-test
 DATAPATH = "davids"  # Data Path value used only for aeroval-test.
 
-class FetchHelper():
+
+class FetchHelper:
     def __init__(self, project: str, experiment: str):
         self._project = project
         self._experiment = experiment
 
-    def get_ts(self,
+    def get_ts(
+        self,
         varname: str,
         region: str,
         model: str,
@@ -31,7 +33,9 @@ class FetchHelper():
         Returns ts plot data as shown on Aeroval for the provided arguments.
         """
         scatter = fetch_json(
-            f"/ts/{self._project}/{self._experiment}/{region}/{obsnetwork}/{varname}/{layer}", aeroval_test=USE_AEROVAL_TEST, user_name_space=DATAPATH
+            f"/ts/{self._project}/{self._experiment}/{region}/{obsnetwork}/{varname}/{layer}",
+            aeroval_test=USE_AEROVAL_TEST,
+            user_name_space=DATAPATH,
         )
 
         new = {
@@ -80,7 +84,9 @@ class FetchHelper():
         - statistics - The subset of statistics values that matches period,season,statisics constraints.
         """
         map_data = fetch_json(
-            f"/map/{self._project}/{self._experiment}/{obsnetwork}/{varname}/{layer}/{model}/{varname}/{period}", aeroval_test=USE_AEROVAL_TEST, user_name_space=DATAPATH
+            f"/map/{self._project}/{self._experiment}/{obsnetwork}/{varname}/{layer}/{model}/{varname}/{period}",
+            aeroval_test=USE_AEROVAL_TEST,
+            user_name_space=DATAPATH,
         )
 
         result = []
@@ -101,7 +107,7 @@ class FetchHelper():
             result.append(new)
 
         return result
-    
+
     def get_scatter(
         self,
         frequency: str,
@@ -118,21 +124,24 @@ class FetchHelper():
         of the correlation statistics and the timeseries data which is returned as a dict of the form {"stats": ..., "ts": ...}
         """
         scat = fetch_json(
-            f"/regional_statistics/{self._project}/{self._experiment}/{frequency}/{varname}/{obsnetwork}/{layer}", aeroval_test=USE_AEROVAL_TEST, user_name_space=DATAPATH
+            f"/regional_statistics/{self._project}/{self._experiment}/{frequency}/{varname}/{obsnetwork}/{layer}",
+            aeroval_test=USE_AEROVAL_TEST,
+            user_name_space=DATAPATH,
         )
 
         return {
             "stats": scat[model][varname][region][f"{period}-{season}"],
-            "ts": self.get_ts(
-                varname, region, model, obsnetwork, layer, frequency
-            ),
+            "ts": self.get_ts(varname, region, model, obsnetwork, layer, frequency),
         }
+
 
 if __name__ == "__main__":
     # Instantiate class for fetching scatter and ts data for a project/experiment.
     fetch = FetchHelper(PROJECT, EXPERIMENT)
 
-    map_data = fetch.get_map_data("concNno", "EBAS-m", "v5.3", "Surface", "2022", "DJF", "yearly")
+    map_data = fetch.get_map_data(
+        "concNno", "EBAS-m", "v5.3", "Surface", "2022", "DJF", "yearly"
+    )
 
     pprint.pprint(map_data[0])
 

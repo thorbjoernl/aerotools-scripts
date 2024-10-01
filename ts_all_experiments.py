@@ -106,6 +106,7 @@ def get_ts(
 
     return new
 
+
 if __name__ == "__main__":
     LAYER = "Surface"
     VARNAME = "concNno"
@@ -129,7 +130,6 @@ if __name__ == "__main__":
             ts_data[exp][station] = get_ts(
                 VARNAME, station, MODEL, OBSNETWORK, LAYER, PERIOD, SEASON, FREQUENCY
             )
-
 
     pprint.pprint(ts_data["DSemep"]["Ulborg"])
 

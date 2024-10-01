@@ -8,7 +8,9 @@ logger = logging.getLogger(__name__)
 HTTP_OK = 200
 
 
-def fetch_json(path: str, aeroval_test: bool = True, user_name_space: str | None = None) -> dict:
+def fetch_json(
+    path: str, aeroval_test: bool = True, user_name_space: str | None = None
+) -> dict:
     """
     Helper function to fetch and parse json from some path on api.aeroval[-test].met.no.
     """

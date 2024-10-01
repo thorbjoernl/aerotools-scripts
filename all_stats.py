@@ -19,7 +19,11 @@ def process_menu(project: str, experiment: str) -> dict:
     Returns details about varnames, obsnetworks and models parsed from
     the menu file for an experiment as a dict.
     """
-    menu = fetch_json(f"/menu/{project}/{experiment}", aeroval_test=USE_AEROVAL_TEST, user_name_space=DATAPATH)
+    menu = fetch_json(
+        f"/menu/{project}/{experiment}",
+        aeroval_test=USE_AEROVAL_TEST,
+        user_name_space=DATAPATH,
+    )
 
     var_names = list(menu)
     obs_networks = list(menu[var_names[0]]["obs"])
@@ -30,7 +34,11 @@ def process_menu(project: str, experiment: str) -> dict:
 def fetch_heatmap(
     project: str, experiment: str, frequency: str, region: str, period: str
 ) -> dict:
-    return fetch_json(f"/heatmap/{project}/{experiment}/{frequency}/{region}/{period}", aeroval_test=USE_AEROVAL_TEST, user_name_space=DATAPATH)
+    return fetch_json(
+        f"/heatmap/{project}/{experiment}/{frequency}/{region}/{period}",
+        aeroval_test=USE_AEROVAL_TEST,
+        user_name_space=DATAPATH,
+    )
 
 
 def filter_heatmap(
@@ -66,7 +74,6 @@ if __name__ == "__main__":
                 result[var][obsnetwork][mod] = filter_heatmap(
                     data, obsnetwork, mod, var, "ALL", "2022", "all"
                 )
-
 
     # result is now a nested dict with the stats values found here: https://aeroval-test.met.no/davids/pages/overall/?project=rv5_series&experiment=DSemep&season=All&region=ALL
     # Individual stats can be accessed as follows: result[varname][obsnetwork][model]["R"]

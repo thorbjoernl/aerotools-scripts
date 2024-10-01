@@ -23,14 +23,21 @@ FOLDER_TO_READ = pathlib.Path(
 def ebas_components_for_aerocom_variable(aerocom_variable: str):
     return EbasVarInfo(aerocom_variable)["component"]
 
-def get_datasets(var_name: str, sites: list[str] | str, matrix: str, start_time: datetime.datetime, end_time: datetime.datetime):
+
+def get_datasets(
+    var_name: str,
+    sites: list[str] | str,
+    matrix: str,
+    start_time: datetime.datetime,
+    end_time: datetime.datetime,
+):
     if isinstance(sites, str):
         sites = [sites]
     con = sqlite3.connect(str(EBAS_FILE_INDEX))
     con.row_factory = sqlite3.Row
 
     cur = con.cursor()
-    
+
     comps = ebas_components_for_aerocom_variable(var_name)
 
     cur.execute(
@@ -52,6 +59,7 @@ def get_datasets(var_name: str, sites: list[str] | str, matrix: str, start_time:
     )
     return cur.fetchall()
 
+
 def read_ebas_data(file_name: str) -> pd.DataFrame:
     """
     Reads data from a single ebas .nas file providing it as a pandas data frame.
@@ -63,7 +71,8 @@ def read_ebas_data(file_name: str) -> pd.DataFrame:
     engines = pyaro.list_timeseries_engines()
     df = None
     with engines["nilupmfebas"].open(
-        file_name, filters=[pyaro.timeseries.filters.get("stations", include=tuple(SITES))]
+        file_name,
+        filters=[pyaro.timeseries.filters.get("stations", include=tuple(SITES))],
     ) as ts:
 
         ebas_var = None
@@ -93,6 +102,7 @@ def read_ebas_data(file_name: str) -> pd.DataFrame:
                         df[f"stdev_{ebas_var}"] = data.standard_deviations
 
     return df
+
 
 if __name__ == "__main__":
     VAR_NAME = "concso4"

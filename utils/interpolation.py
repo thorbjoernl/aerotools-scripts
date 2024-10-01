@@ -3,8 +3,12 @@ import xarray as xr
 
 # https://cfconventions.org/Data/cf-conventions/cf-conventions-1.11/cf-conventions.html#latitude-coordinate
 # https://cfconventions.org/Data/cf-conventions/cf-conventions-1.11/cf-conventions.html#longitude-coordinate
-UNITS_LAT = set(["degrees_north", "degree_north", "degree_N", "degrees_N", "degreeN", "degreesN"])
-UNITS_LON = set(["degrees_east", "degree_east", "degree_E", "degrees_E", "degreeE", "degreesE"])
+UNITS_LAT = set(
+    ["degrees_north", "degree_north", "degree_N", "degrees_N", "degreeN", "degreesN"]
+)
+UNITS_LON = set(
+    ["degrees_east", "degree_east", "degree_E", "degrees_E", "degreeE", "degreesE"]
+)
 
 
 def _find_lat_lon_var_names(data: xr.Dataset) -> tuple[str, str]:
@@ -20,7 +24,10 @@ def _find_lat_lon_var_names(data: xr.Dataset) -> tuple[str, str]:
 
     return lat_var, lon_var
 
-def get_bilinear_interpolation(data: xr.Dataset, lat: np.ndarray, lon: np.ndarray) -> xr.Dataset:
+
+def get_bilinear_interpolation(
+    data: xr.Dataset, lat: np.ndarray, lon: np.ndarray
+) -> xr.Dataset:
     lat_var, lon_var = _find_lat_lon_var_names(data)
 
     # https://docs.xarray.dev/en/latest/user-guide/interpolation.html
@@ -29,9 +36,7 @@ def get_bilinear_interpolation(data: xr.Dataset, lat: np.ndarray, lon: np.ndarra
             lat_var: lat,
             lon_var: lon,
         },
-        method="linear"
+        method="linear",
     )
 
     return interpolated
-
-

@@ -4,7 +4,7 @@ from utils import fetch_json, station_code_lookup_table
 
 logger = logging.getLogger(__name__)
 
-# Used as tolerance for comparing api provided tolerances and ebas file 
+# Used as tolerance for comparing api provided tolerances and ebas file
 # index provided tolerances. Differences above this value will cause a
 # warning.
 COORD_TOLERANCE = 0.0001
@@ -41,7 +41,9 @@ def get_site_data(
     stats = time_config["stats"]
 
     map_data = fetch_json(
-        f"/map/{PROJECT}/{EXPERIMENT}/{obsnetwork}/{varname}/{layer}/{model}/{varname}/{year}", aeroval_test=USE_AEROVAL_TEST, user_name_space=DATAPATH
+        f"/map/{PROJECT}/{EXPERIMENT}/{obsnetwork}/{varname}/{layer}/{model}/{varname}/{year}",
+        aeroval_test=USE_AEROVAL_TEST,
+        user_name_space=DATAPATH,
     )
     result = {}
     for md in map_data:
@@ -74,6 +76,7 @@ def get_site_data(
         result[station_code] = extracted_data
 
     return result
+
 
 if __name__ == "__main__":
     sites = get_site_data("concNno", "EBAS-m", "v5.3", "Surface", time_config)
