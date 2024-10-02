@@ -23,14 +23,22 @@ FOLDER_TO_READ = pathlib.Path(
 def ebas_components_for_aerocom_variable(aerocom_variable: str):
     return EbasVarInfo(aerocom_variable)["component"]
 
-def get_datasets(var_name: str, sites: list[str] | str, matrix: str, statistics: str, start_time: datetime.datetime, end_time: datetime.datetime):
+
+def get_datasets(
+    var_name: str,
+    sites: list[str] | str,
+    matrix: str,
+    statistics: str,
+    start_time: datetime.datetime,
+    end_time: datetime.datetime,
+):
     if isinstance(sites, str):
         sites = [sites]
     con = sqlite3.connect(str(EBAS_FILE_INDEX))
     con.row_factory = sqlite3.Row
 
     cur = con.cursor()
-    
+
     comps = ebas_components_for_aerocom_variable(var_name)
 
     cur.execute(
@@ -53,6 +61,7 @@ def get_datasets(var_name: str, sites: list[str] | str, matrix: str, statistics:
     )
     return cur.fetchall()
 
+
 def read_ebas_data(file_name: str) -> pd.DataFrame | None:
     """
     Reads data from a single ebas .nas file providing it as a pandas data frame.
@@ -64,7 +73,8 @@ def read_ebas_data(file_name: str) -> pd.DataFrame | None:
     engines = pyaro.list_timeseries_engines()
     df = None
     with engines["nilupmfebas"].open(
-        file_name, filters=[pyaro.timeseries.filters.get("stations", include=tuple(SITES))]
+        file_name,
+        filters=[pyaro.timeseries.filters.get("stations", include=tuple(SITES))],
     ) as ts:
         df = None
         for x in ebas_components_for_aerocom_variable(VAR_NAME):
@@ -89,13 +99,26 @@ def read_ebas_data(file_name: str) -> pd.DataFrame | None:
                     if df is None:
                         df = new
                     else:
-                        df = df.merge(new, on = ("start_time", "end_time", "latitude", "longitude", "altitude", "station", "flag"), how="outer")
+                        df = df.merge(
+                            new,
+                            on=(
+                                "start_time",
+                                "end_time",
+                                "latitude",
+                                "longitude",
+                                "altitude",
+                                "station",
+                                "flag",
+                            ),
+                            how="outer",
+                        )
     if df is not None:
         df = df.sort_values("start_time")
     return df
 
+
 if __name__ == "__main__":
-    VAR_NAME = "concso4" # https://github.com/metno/pyaerocom/blob/main-dev/pyaerocom/data/variables.ini
+    VAR_NAME = "concso4"  # https://github.com/metno/pyaerocom/blob/main-dev/pyaerocom/data/variables.ini
 
     SITES = ["AT0002R", "NO0001R"]
 

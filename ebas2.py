@@ -67,6 +67,7 @@ if __name__ == "__main__":
     # filtered based on ~23:30 timestamp.
     df = df[df["time"].dt.year.isin([2010, 2011])]
 
+    df.to_csv("output.csv")
     # Filter for date range.
     start = datetime.datetime(2010, 3, 14, 12, 0, 0)
     end = datetime.datetime(2010, 4, 14, 12, 0, 0)
