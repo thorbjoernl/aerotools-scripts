@@ -9,12 +9,13 @@ if __name__ == "__main__":
         data_dir="/lustre/storeB/project/fou/kl/emep/ModelRuns/2024_REPORTING/TRENDS/2020",
     )
 
-    mod_data: pya.griddeddata.GriddedData = mod_reader.read_var("concnh3", "daily")
+    mod_data: pya.griddeddata.GriddedData = mod_reader.read_var("concnh3", ts_type="daily")
 
     obs_reader = pya.io.ReadUngridded("EBASMC")
 
     obs_data: pya.ungriddeddata.UngriddedData = obs_reader.read(
-        vars_to_retrieve="concnh3"
+        vars_to_retrieve="concnh3",
+        #ts_type="daily"
     )
 
     coord_pairs = obs_data._get_stat_coords()[1]
@@ -32,4 +33,5 @@ if __name__ == "__main__":
         mod_data_int, obs_data
     )
 
-    print(colocated_data)
+    df = colocated_data.to_dataframe()
+    print(df)
