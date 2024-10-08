@@ -1,5 +1,6 @@
 import iris.analysis
 import iris
+import iris.cube
 import pyaerocom as pya
 
 if __name__ == "__main__":
@@ -18,12 +19,17 @@ if __name__ == "__main__":
 
     coord_pairs = obs_data._get_stat_coords()[1]
     lat, lon = list(zip(*coord_pairs))
-    # lat, lon = zip(*list(itertools.product(mod_data.cube.coord('latitude').points, mod_data.cube.coord('longitude').points)))
-    mod_data.cube = mod_data.cube.interpolate(
-        [("longitude", lon), ("latitude", lat)], iris.analysis.Linear()
-    )
+
+    # lat and lon must be an ascending list with duplicates removed for interpolation to work as intended.
+    lat = sorted(set(list(lat)))
+    lon = sorted(set(list(lon)))
+
+    mod_data_int = mod_data.interpolate(scheme=iris.analysis.Linear(), latitude=lat, longitude=lon)
+    
+    #result = pya.io.iris_io.concatenate_iris_cubes(cubes)
+
     colocated_data = pya.colocation.colocation_utils.colocate_gridded_ungridded(
-        mod_data, obs_data
+        mod_data_int, obs_data
     )
 
     print(colocated_data)
