@@ -28,18 +28,19 @@ def _haversine(lon1, lat1, lon2, lat2):
 
 
 def _get_relative_altitude(
-    lat: float, lon: float, *, radius: float = 5000, altitude: float, topography_file
+    lat: float, lon: float, *, radius: float = 5000, altitude: float, fun: str = "min", topography_file
 ):
     topo = xr.open_dataset(topography_file)
-
+    topo["Band1"] = topo["Band1"].where(np.isnan(topo["Band1"]), other=0)
+    #topo = topo.fillna(0)
     distances = _haversine(topo["lon"], topo["lat"], lon, lat)
 
     within_radius = distances <= radius
 
     values_within_radius = topo["Band1"].where(within_radius, drop=True)
 
-    min_value = float(values_within_radius.min())
-
+    fun = getattr(values_within_radius, fun)
+    min_value = float(fun())
     return altitude - max([min_value, 0])
 
 
@@ -66,6 +67,7 @@ def get_relative_altitude(
     *,
     radius: float = 5000,
     altitude: float,
+    fun: str = "min",
     topodir: str = DEFAULT_TOPO_DIR,
 ) -> float:
     """Returns the relative height for a lat/lon/altitude height.
@@ -74,6 +76,8 @@ def get_relative_altitude(
     :param lon: Longitude
     :param altitude: Altitude (meters)
     :param radius: Radius (meters), defaults to 5000
+    :param fun: string name of a function to be used to determine the value 
+        against which to calculate the relative altitude (eg. 'min', 'mean', 'median')
     :return: Relative height.
 
     Note:
@@ -87,5 +91,6 @@ def get_relative_altitude(
         lon,
         radius=radius,
         altitude=altitude,
+        fun = fun,
         topography_file=topo_file,
     )
