@@ -3,8 +3,6 @@
 This repo contains a number of collected scripts showing how to work with the [Aeroval](https://aeroval.met.no/) API, performing colocation and interpolation with Pyaerocom, reading EBAS data and more.
 
 ## Running the scripts
-**TODO**: Make sure requirments.txt is updated.
-
 - `pip install -r requirements.txt` (It is recommended to use a virtual environment)
 - `python NAME_OF_SCRIPT`
 
@@ -372,4 +370,102 @@ Similarly shows how to use the Pyaerocom reader to read and filter EBAS data int
 [8760 rows x 5 columns]
 ```
 
+</details>
+
+# `ts_all_experiments.py`
+Script for fetching all timeseries data for each experiment in a project using the *Aeroval* API.
+
+<details>
+    <summary>Example Output</summary>
+
+```
+{'date': [1642204800000,
+          1644883200000,
+          1647302400000,
+          1649980800000,
+          1652572800000,
+          1655251200000,
+          1657843200000,
+          1660521600000,
+          1663200000000,
+          1665792000000,
+          1668470400000,
+          1671062400000],
+ 'mod': [0.01544,
+         0.02262,
+         0.11107,
+         0.09903,
+         0.06891,
+         0.06558,
+         0.12066,
+         None,
+         None,
+         0.06131,
+         0.03328,
+         0.03677],
+ 'mod_unit': 'ug N m-3',
+ 'mod_var': 'concNno',
+ 'model_name': 'v5.3',
+ 'obs': [-0.02536,
+         -0.1396,
+         0.18742,
+         0.19061,
+         0.11795,
+         0.07586,
+         0.13181,
+         None,
+         None,
+         0.05669,
+         -0.1508,
+         0.19174],
+ 'obs_name': 'EBAS-m',
+ 'obs_unit': 'ug N m-3',
+ 'obs_var': 'concNno',
+ 'pyaerocom_version': '0.21.0',
+ 'station_name': 'Ulborg'}
+{'date': [1642204800000,
+          1644883200000,
+          1647302400000,
+          1649980800000,
+          1652572800000,
+          1655251200000,
+          1657843200000,
+          1660521600000,
+          1663200000000,
+          1665792000000,
+          1668470400000,
+          1671062400000],
+ 'mod': [0.6942,
+         0.15791,
+         0.5524,
+         0.41361,
+         0.30402,
+         0.31338,
+         0.30465,
+         0.27818,
+         0.28571,
+         0.2762,
+         0.33026,
+         0.51944],
+ 'mod_unit': 'ug N m-3',
+ 'mod_var': 'concNno',
+ 'model_name': 'v5.3',
+ 'obs': [0.78851,
+         0.2981,
+         0.54599,
+         0.33587,
+         0.28088,
+         0.25334,
+         0.2356,
+         0.27838,
+         0.32655,
+         0.40809,
+         0.48763,
+         0.89279],
+ 'obs_name': 'EBAS-m',
+ 'obs_unit': 'ug N m-3',
+ 'obs_var': 'concNno',
+ 'pyaerocom_version': '0.21.0',
+ 'station_name': 'ALL'}
+```
 </details>
