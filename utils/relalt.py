@@ -31,8 +31,7 @@ def _get_relative_altitude(
     lat: float, lon: float, *, radius: float = 5000, altitude: float, fun: str = "min", topography_file
 ):
     topo = xr.open_dataset(topography_file)
-    topo["Band1"] = topo["Band1"].where(np.isnan(topo["Band1"]), other=0)
-    #topo = topo.fillna(0)
+    topo = topo.fillna(0)
     distances = _haversine(topo["lon"], topo["lat"], lon, lat)
 
     within_radius = distances <= radius

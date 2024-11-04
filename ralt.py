@@ -132,7 +132,7 @@ TABLE_VALUES = [
 print(f"{'site'.rjust(15)} {'lat'.rjust(10)} {'lon'.rjust(10)} {'alt'.rjust(7)} {'ralt'.rjust(7)} {'exp ralt'.rjust(10)} {'delta'.rjust(7)}")
 ls = []
 for site in TABLE_VALUES:
-    ralt = get_relative_altitude(site["latitude"], site["longitude"], radius=3000, fun="mean", altitude=site["altitude"])
+    ralt = get_relative_altitude(site["latitude"], site["longitude"], radius=3000, fun="mean", altitude=site["altitude"], topodir="topo/nc2")
 
     delta = ralt - site["relaltitude"]
     ls.append(delta)
