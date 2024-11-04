@@ -372,7 +372,7 @@ Similarly shows how to use the Pyaerocom reader to read and filter EBAS data int
 
 </details>
 
-# `ts_all_experiments.py`
+## `ts_all_experiments.py`
 Script for fetching all timeseries data for each experiment in a project using the *Aeroval* API.
 
 <details>
