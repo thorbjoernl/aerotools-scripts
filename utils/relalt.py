@@ -4,6 +4,8 @@ from .const import EARTH_RADIUS, DEFAULT_TOPO_DIR
 import json
 import os
 import logging
+from functools import cache
+
 
 logger = logging.getLogger(__name__)
 
@@ -30,8 +32,16 @@ def _haversine(lon1, lat1, lon2, lat2):
 def _get_relative_altitude(
     lat: float, lon: float, *, radius: float = 5000, altitude: float, fun: str = "min", topography_file
 ):
-    topo = xr.open_dataset(topography_file)
+    topo = _load_topo(topography_file)
+
+    # At most one degree of latitude (at equator) is roughly 111km.
+    # Subsetting to based on this value with safety margin makes the
+    # distance calculation MUCH more efficient.
+
+    s = 0.1 + (radius/1000)/100
+    topo = topo.sel(lon=slice(lon-s, lon+s), lat=slice(lat-s, lat+s))
     topo = topo.fillna(0)
+
     distances = _haversine(topo["lon"], topo["lat"], lon, lat)
 
     within_radius = distances <= radius
@@ -42,6 +52,9 @@ def _get_relative_altitude(
     min_value = float(fun())
     return altitude - max([min_value, 0])
 
+@cache
+def _load_topo(a_file):
+    return xr.open_dataset(a_file)
 
 def _get_topo_file_for_coord(
     lat: float, lon: float, *, topodir: str = DEFAULT_TOPO_DIR

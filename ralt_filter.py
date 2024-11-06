@@ -26,13 +26,13 @@ for s in stations:
         continue
     
     try:
-        ralt = get_relative_altitude(float(s["station_latitude"]), float(s["station_longitude"]), radius = 5000, altitude = float(s["station_altitude"]), topodir = "./topo/nc2")
+        ralt = get_relative_altitude(float(s["station_latitude"]), float(s["station_longitude"]), radius = 5000, altitude = float(s["station_altitude"]))
     except ValueError:
         print(f"Station location does not fall within bounds of topo files")
         continue
 
-    #print(f"{s['station_code']} - {ralt:.2f}")
-    if ralt >= 5000:
+    print(f"{s['station_code']} - {ralt:.2f}")
+    if ralt >= 1000:
         mountain_sites.append(s["station_code"])
 
 with open("mountain_sites.txt", "w") as f:
