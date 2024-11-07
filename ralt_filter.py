@@ -26,7 +26,7 @@ for s in stations:
         continue
     
     try:
-        ralt = get_relative_altitude(float(s["station_latitude"]), float(s["station_longitude"]), radius = 5000, altitude = float(s["station_altitude"]))
+        ralt = get_relative_altitude(float(s["station_latitude"]), float(s["station_longitude"]), radius = 5000, altitude = float(s["station_altitude"]), topodir="topo/nc")
     except ValueError:
         print(f"Station location does not fall within bounds of topo files")
         continue

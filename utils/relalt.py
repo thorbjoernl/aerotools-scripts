@@ -46,7 +46,7 @@ def _get_relative_altitude(
 
     within_radius = distances <= radius
 
-    values_within_radius = topo["Band1"].where(within_radius, drop=True)
+    values_within_radius = topo["Band1"].where(within_radius, other=False, drop=True)
 
     fun = getattr(values_within_radius, fun)
     min_value = float(fun())
