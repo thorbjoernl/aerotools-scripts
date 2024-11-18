@@ -470,7 +470,7 @@ Script for fetching all timeseries data for each experiment in a project using t
 ```
 </details>
 
-## 'ralt_filter.py`
+## `ralt_filter.py`
 The purpose of this script is to filter the list of EBAS stations based on relative altitude. The output is a textfile with one station code per line which can be used as the starting point for a `omit_stations.tsv` file when running experiments.
 
 <details>
