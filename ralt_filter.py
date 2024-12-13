@@ -1,6 +1,7 @@
 from utils.relalt import get_relative_altitude
 import sqlite3
 import pathlib
+from pprint import pprint
 
 EBAS_FILE_INDEX = pathlib.Path(
     "/lustre/storeB/project/aerocom/aerocom1/AEROCOM_OBSDATA/EBASMultiColumn/data/ebas_file_index.sqlite3"
@@ -19,7 +20,7 @@ cur.execute(
 
 stations = [dict(x) for x in cur.fetchall()]
 
-mountain_sites = []
+sites = []
 for s in stations:
     if s["station_altitude"] is None:
         print(f"No altitude for station '{s['station_code']}'")
@@ -32,8 +33,11 @@ for s in stations:
         continue
 
     print(f"{s['station_code']} - {ralt:.2f}")
-    if ralt >= 1000:
-        mountain_sites.append(s["station_code"])
+    if ralt >= 500:
+        sites.append(s["station_code"])
 
-with open("mountain_sites.txt", "w") as f:
-    f.write("\n".join(mountain_sites))
+#with open("mountain_sites.txt", "w") as f:
+#    f.write("\n".join(mountain_sites))
+
+print(sorted(sites))
+print("AT0034G" in sites)
