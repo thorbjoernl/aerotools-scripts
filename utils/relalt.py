@@ -40,7 +40,7 @@ def _get_relative_altitude(
 
     s = 0.1 + (radius/1000)/100
     topo = topo.sel(lon=slice(lon-s, lon+s), lat=slice(lat-s, lat+s))
-    #topo = topo.fillna(0)
+    topo = topo.fillna(0)
 
     distances = _haversine(topo["lon"], topo["lat"], lon, lat)
 
